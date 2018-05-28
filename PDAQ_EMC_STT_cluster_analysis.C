@@ -231,6 +231,9 @@ void pd_init_hst()
 //===================================================================
 void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
 {
+     FILE * fp = fopen("log_pdaq.txt", "w");
+     if (!fp)
+        fprintf(stderr, "Log file not open!\n");
 
     //------
     // Init histograms
@@ -391,7 +394,7 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
 
 
 
-    TFile* ftree = new TFile("Drift_Radius.root", "RECREATE");
+    TFile* ftree = new TFile("Drift_Radius_test.root", "RECREATE");
     TTree* DR_Tree = new TTree("DR_Tree", "DR_Tree");
 
     DR_Tree->Branch("Vec_o_test", &vec_o_test);
@@ -411,7 +414,8 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
     DR_Tree->Branch("Drift_Time_STT_EMC", &vec_drift_radius);*/
 
 
-    for (Int_t e = 0; e < nentries; e++)
+    Long_t global_cnt = 0;
+    for (Long_t e = 0; e < nentries; e++)
     {
 
         if (e % 10000 == 0)
@@ -445,6 +449,7 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
         double b_err;
 
         SttHit* hitOnLayer[4][500];
+        memset(hitOnLayer, 0, 4*500*sizeof(SttHit*));
         int hitMultOnLayer[4];
         int layerCounterr = 0;
         for (int i = 0; i < 4; i++)
@@ -482,21 +487,24 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
                 hitOnLayer[hit->layer - 1][hitMultOnLayer[hit->layer - 1]] = hit;
 
                 hitMultOnLayer[hit->layer - 1]++;
-
-                for (int c = 0; c < 4; c++)
-                {
-                    if (hitMultOnLayer[c] > 0)
-                        layerCounterr++;
-                }
-                if (layerCounterr == 4)
-                {
-
-                    h_STT_layerMult->Fill(hit->layer);
-                }
             }
 
             hitsInEvent++;
         } // end of loop over hits
+
+        bool good_layers = true;
+        for (int c = 0; c < 4; c++)
+        {
+            if (hitMultOnLayer[c] != 1)
+            {
+                 good_layers = false;
+                 break;
+            }
+        }
+        if(good_layers)
+            h_STT_layerMult->Fill(1);
+        else
+            h_STT_layerMult->Fill(0);
 
         // find the number of layers hit
         int layerCounter = 0;
@@ -564,7 +572,7 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
             {
                 h_STT_counts->Fill(2);
 
-                for (int v = 0; v < vec_leadTime.size() - 2; v++)
+                for (int v = 0; v < vec_leadTime.size(); v++)
                 { // iterate over collected and sorted hits
                     vec_filterLeadTime.clear();
                     filtercnt = 1;
@@ -573,17 +581,15 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
                     vec_filterLeadTime.push_back(h);
 
 
-                    for (int vv = v + 1; vv < vec_leadTime.size() - 1; vv++)
+                    for (int vv = 0; vv < vec_leadTime.size(); vv++)
                     { // check each vs each if they fit into the window
-
+                        if (vv == v)    continue;
                         if (fabs(vec_leadTime[v]->leadTime - vec_leadTime[vv]->leadTime) < fil_max)
 
                         {
                             SttHit* hh = vec_leadTime.at(vv);
                             vec_filterLeadTime.push_back(hh);
                             filtercnt++;
-                            h_STT_leadTimeDiff->Fill(
-                                fabs(vec_leadTime[v]->leadTime - vec_leadTime[vv]->leadTime));
                         }
                         else
                         { // in case the hit is outside the window break and start next iteration
@@ -594,16 +600,22 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
 
                     if (filtercnt == 8)
                     { // in case we already have at least 8 hits within window, break and continue
+                        for (int vv = v + 1; vv < vec_leadTime.size() - 1; vv++)
+                            h_STT_leadTimeDiff->Fill(
+                                fabs(vec_leadTime[v]->leadTime - vec_leadTime[vv]->leadTime));
+
                         // processing
                         break;
                     }
+                    else
+                        vec_filterLeadTime.clear();
                 }
             }
             //  }
             //}
 
             //  in case we have at least 8 hits within timewindow go with tracking
-            if (filtercnt >7)
+            if (vec_filterLeadTime.size() == 8)
             {
 
                 /*printf("Found a potential track:\n");
@@ -821,9 +833,28 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
             // STT + EMC Processing
 
 
+            char buff[10000];
             if (sttCosmic == true && emcCosmic == true)
             {
                 printf("Cosmic found in both subsystems in event nr:%d\n", e);
+
+                int local_cnt = 0;
+                for (int i = 0; i < stt_events->totalNTDCHits; i++)
+                {
+                    SttHit* hit  = (SttHit*)stt_events->tdc_hits->ConstructedAt(i); // retrieve particular hit
+                    if (hit->isRef) continue;
+
+                    sprintf(buff, "[%d / %d]  l,m,c,cf=%d,%d,%2d,%2d    x,y,z=%.3f,%.3f,%.3f  lt=%f   dt=%f\n",
+                           global_cnt, local_cnt,
+                           hit->layer, hit->module, hit->channel, hit->fee_channel,
+                           hit->x, hit->y, hit->z,
+                           hit->leadTime, hit->drifttime);
+                    printf(buff);
+                    fprintf(fp, buff);
+                    ++local_cnt;
+                }
+                ++global_cnt;
+
 
                 h_STT_EMC_cosmic->Fill(1);
                 h_STT_counts->Fill(4);
@@ -1211,4 +1242,9 @@ cout<<"Number of drifttimes :  "<<counterofdt<<endl;
 	gDriftRadius->Write();
     DR_Tree->Write();
 
+    if (fp)
+        fclose(fp);
 }
+
+
+void PDAQ_EMC_STT_cluster_analysis() {}
