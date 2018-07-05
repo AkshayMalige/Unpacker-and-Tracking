@@ -19,8 +19,9 @@ SttHit* SttEvent::AddHit(int channel) {
 }
 
 void SttEvent::Clear(void) {
-	delete tdc_hits;
-	tdc_hits = new TClonesArray("SttHit", 1000);
+	tdc_hits->Clear("C");
+//	delete tdc_hits;
+//	tdc_hits = new TClonesArray("SttHit", 1000);
 
 	totalNTDCHits = 0;
 }

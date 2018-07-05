@@ -246,6 +246,10 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
     Int_t t_Header_system_id;
     UInt_t t_SB_number;
 
+    Double_t doubleCntr =0;
+    Double_t doubleCntr1 =0;
+
+
 	// initialize stt data
 
 	stt_channel_offsets[0xe100] = 0 * 49;
@@ -262,6 +266,7 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
 
 double emc_pulser_time = 0;
     //
+//cout<<endl;
     UInt_t N_events=0;
     while(!in_file.eof()){
 	n_bytes = 0;	
@@ -502,6 +507,7 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 						if (channel_nr == 0) { // ref time
 							refTime = time;
 
+
 							SttHit* a = stt_event->AddHit(channel_nr + stt_channel_offsets[tdc_id]);
 							a->leadTime = time;
 							a->trailTime = 0;
@@ -522,6 +528,29 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 							else {  // falling edge
 
 								if (lastRise != 0) { // only in case there was a rising to pair
+							
+
+							//cout<<channel_nr + stt_channel_offsets[tdc_id]<<"\t"<<sizeof(stt_event)<<endl;
+
+							bool doubleHit = false;
+
+							for ( Int_t ui=0; ui<stt_event->totalNTDCHits; ui++)
+							{
+								if ( ((SttHit*)stt_event->tdc_hits->ConstructedAt(ui))->channel == channel_nr + stt_channel_offsets[tdc_id]) {
+									if ( ((SttHit*)stt_event->tdc_hits->ConstructedAt(ui))->leadTime == lastRise) {
+										//cout<<"Double hit :"<<endl;
+										doubleHit = true;
+										doubleCntr++;
+									}
+								}
+								
+								doubleCntr1++;
+							}
+
+//cout << " THE TDC_HITS   :" <<stt_event->tdc_hits->ConstructedAt()<<endl;
+									//cout<<channel_nr+stt_channel_offsets[tdc_id]<<endl;
+				if (doubleHit == false) 
+				{
 									SttHit* a = stt_event->AddHit(channel_nr + stt_channel_offsets[tdc_id]);
 									a->leadTime = lastRise;
 									a->trailTime = refTime - time;
@@ -534,8 +563,11 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 									a->module = l.module;
 									a->fee = l.fee;
 									a->fee_channel = l.channel_no;
+									a->cell = (32 * (l.module -1)) + (16 * (l.fee -1)) + (16-(l.channel_no-1));
 
-										if ( a->layer ==1){
+									//cout << a->cell << endl;
+
+										if (a->layer ==1){
 											a->x = x_offset + ((a->module-1) * mod_width) + (a->fee * mod_width) - a->fee_channel*ss;
 											a->y = 0;
 
@@ -546,6 +578,7 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 												else {
 													  a->z = 0;
 												}
+
 										}
 
 
@@ -554,11 +587,11 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 											a->x = 0;
 
 											if (a->fee_channel%2==0){
-												a->z = 13.01;
+												a->z = 12.0;
 											}
 
 											else {
-												  a->z = 12.0;
+												  a->z = 13.01;
 											}
 
 										}
@@ -582,29 +615,30 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 											a->x = 0;
 
 											if (a->fee_channel%2==0){
-												a->z = 40.61;
+												a->z = 39.59;
 											}
 
 											else {
-												  a->z = 39.59;
+												  a->z = 40.61;
 											}
 
 										}
-										
-										
-			
 
-									//printf("hit R: %f F: %f on channel %d\n", a->leadTime, a->trailTime, channel_nr + stt_channel_offsets[tdc_id]);
-
-
-//printf("det_loc: %d %d %d %d \n", l.layer, l.module, l.fee, l.channel_no);
+					//printf("hit R: %f F: %f on channel %d\n", a->leadTime, a->trailTime, channel_nr + stt_channel_offsets[tdc_id]);
+					//printf("det_loc: %d %d %d %d \n", l.layer, l.module, l.fee, l.channel_no);
 
 								}
 							}
 						}
+
 					}
+				}
+
+
+
 					else if (((sub[i] >> 28) & 0xf) == 0x6) {  // epoch counter
 						epoch = sub[i] & 0xffffff;
+
 					}
 				}
 
@@ -626,8 +660,14 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 	        n_bytes += 4;
 	    }
 	}
+
+
+
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     }
+
+	 cout<<"Repeated hits :"<<doubleCntr<<"/"<<doubleCntr1<<endl;
+
     in_file.close();
     if(use_tree_output){ printf("writing file\n");
 	tree->Write();

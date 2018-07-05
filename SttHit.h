@@ -10,16 +10,20 @@ public:
 	double leadTime;
 	double trailTime;
 	double tot;
-		double drifttime;
+	double drifttime;
+	double DriftRadius;
 
 	short layer;
 	short module;
 	short fee;
 	short fee_channel;
+	short cell;
 
 	double x;
 	double y;
 	double z;
+
+
 
 	bool isRef;
 
