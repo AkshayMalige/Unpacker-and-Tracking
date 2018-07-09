@@ -19,11 +19,8 @@
 
 using namespace std;
 
-
-
 Bool_t Drift_Radius(void)
 {
-
     TFile file("Drift_Radius_test.root", "READ");
     TTree* tree = (TTree*)file.Get("DR_Tree");
 
@@ -33,7 +30,6 @@ Bool_t Drift_Radius(void)
     f4 = new TF1("f4", "pol1");
 
     TFile* driftfile1 = new TFile("XYZ_Coordinates.root", "RECREATE");
-    //TFile* driftfile2 = new TFile("Y_Coordinates.root", "RECREATE");
     Double_t theta_X =0;
     Double_t theta_Y =0;
 
@@ -52,7 +48,7 @@ Bool_t Drift_Radius(void)
     TH2F* h_projectionY = new TH2F("h_projectionY", "h_projectionY", 200, -100, 100, 100, 0, 100);
 
 
-    std::vector<double>* Vec_o_test;
+    std::vector<double>* vec_driftTime;
     std::vector<double>* vec_x;
     std::vector<double>* vec_y;
     std::vector<double>* vec_z;
@@ -133,7 +129,7 @@ Bool_t Drift_Radius(void)
     Int_t total_pairs = (array_length / pair_length);
     Int_t no_of_pairs = (total_pairs * total_pairs);
 
-    tree->SetBranchAddress("Vec_o_test", &Vec_o_test);
+    tree->SetBranchAddress("vec_driftTime", &vec_driftTime);
     tree->SetBranchAddress("vec_x", &vec_x);
     tree->SetBranchAddress("vec_y", &vec_y);
     tree->SetBranchAddress("vec_z", &vec_z);
@@ -191,8 +187,6 @@ Bool_t Drift_Radius(void)
         TGraph* fee_drift_15 = new TGraph(500, F31, F32);
     fee_drift_15 = (TGraph*)file.Get("fee_drift_15");
 
-
-
     TGraph* dr_correction = new TGraph(296, ar_ch, ar_corr);
     dr_correction = (TGraph*)file.Get("dr_correction");
 
@@ -211,7 +205,6 @@ Bool_t Drift_Radius(void)
     vec_emcX.clear();
     vec_emcY.clear();
 
-
     //loop over all the vectors in the tree.
 
     for (Int_t i = 0; i < iev; i++) {
@@ -223,10 +216,10 @@ Bool_t Drift_Radius(void)
              << endl
              << endl;
         cout << "entry no. " << i << endl;
-        Int_t oiv = Vec_o_test->size();
+        Int_t oiv = vec_driftTime->size();
         cout << "vecsize  :" << oiv << endl;
 
-        if (Vec_o_test->size() > 8) {
+        if (vec_driftTime->size() > 8) {
             cout << "SIZE GREATER THAN 8" << endl;
         }
 
@@ -254,11 +247,7 @@ Bool_t Drift_Radius(void)
         TH2I* h = new TH2I(buff, "h;x,y [cm];z [cm]", x_bins, x_min, x_max, z_bins, z_min, z_max);
         c1->cd();
         h->Draw();
-        
-        //c1->Range(-10,-10,60,60);
-        //cout<<"hello 1:"<<endl;
-        
-
+      
         //Loop over the vector elements//////////////////////////////////////////////////////
         for (int n = 0; n < oiv; n++) {
             SttHit* a = new SttHit();
@@ -266,136 +255,125 @@ Bool_t Drift_Radius(void)
             
             for (Int_t aj=0; aj<16; aj++)
             {
-                // char puff[200];
-                // sprintf(puff, "fee_drift_%d", aj);
-                // TString abc = puff;
+
                 Int_t FrontEnd = ((4*(vec_layer->at(n) - 1))+(2*(vec_module->at(n))-1)+(vec_fee->at(n)-1));
 
                 if (FrontEnd == 1)
                 {
-                    a->DriftRadius = fee_drift_0->Eval(Vec_o_test->at(n)-(dr_correction->Eval(1)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(1));
+                    a->DriftRadius = fee_drift_0->Eval(vec_driftTime->at(n)-(dr_correction->Eval(1)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(1));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
 
                  }
                 else if (FrontEnd == 2)
                 {
-                    a->DriftRadius = fee_drift_1->Eval(Vec_o_test->at(n)-(dr_correction->Eval(2)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(2));
+                    a->DriftRadius = fee_drift_1->Eval(vec_driftTime->at(n)-(dr_correction->Eval(2)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(2));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 3)
                 {
-                    a->DriftRadius = fee_drift_2->Eval(Vec_o_test->at(n)-(dr_correction->Eval(3)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(3));
+                    a->DriftRadius = fee_drift_2->Eval(vec_driftTime->at(n)-(dr_correction->Eval(3)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(3));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 4)
                 {
-                    a->DriftRadius = fee_drift_3->Eval(Vec_o_test->at(n)-(dr_correction->Eval(4)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(4));
+                    a->DriftRadius = fee_drift_3->Eval(vec_driftTime->at(n)-(dr_correction->Eval(4)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(4));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 5)
                 {
-                    a->DriftRadius = fee_drift_4->Eval(Vec_o_test->at(n)-(dr_correction->Eval(5)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(5));
+                    a->DriftRadius = fee_drift_4->Eval(vec_driftTime->at(n)-(dr_correction->Eval(5)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(5));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 6)
                 {
-                    a->DriftRadius = fee_drift_5->Eval(Vec_o_test->at(n)-(dr_correction->Eval(6)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(6));
+                    a->DriftRadius = fee_drift_5->Eval(vec_driftTime->at(n)-(dr_correction->Eval(6)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(6));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 7)
                 {
-                    a->DriftRadius = fee_drift_6->Eval(Vec_o_test->at(n)-(dr_correction->Eval(7)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(7));
+                    a->DriftRadius = fee_drift_6->Eval(vec_driftTime->at(n)-(dr_correction->Eval(7)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(7));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 8)
                 {
-                    a->DriftRadius = fee_drift_7->Eval(Vec_o_test->at(n)-(dr_correction->Eval(8)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(8));
+                    a->DriftRadius = fee_drift_7->Eval(vec_driftTime->at(n)-(dr_correction->Eval(8)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(8));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 9)
                 {
-                    a->DriftRadius = fee_drift_8->Eval(Vec_o_test->at(n)-(dr_correction->Eval(9)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(9));
+                    a->DriftRadius = fee_drift_8->Eval(vec_driftTime->at(n)-(dr_correction->Eval(9)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(9));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 10)
                 {
-                    a->DriftRadius = fee_drift_9->Eval(Vec_o_test->at(n)-(dr_correction->Eval(10)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(10));
+                    a->DriftRadius = fee_drift_9->Eval(vec_driftTime->at(n)-(dr_correction->Eval(10)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(10));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 11)
                 {
-                    a->DriftRadius = fee_drift_10->Eval(Vec_o_test->at(n)-(dr_correction->Eval(11)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(11));
+                    a->DriftRadius = fee_drift_10->Eval(vec_driftTime->at(n)-(dr_correction->Eval(11)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(11));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 12)
                 {
-                    a->DriftRadius = fee_drift_11->Eval(Vec_o_test->at(n)-(dr_correction->Eval(12)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(12));
+                    a->DriftRadius = fee_drift_11->Eval(vec_driftTime->at(n)-(dr_correction->Eval(12)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(12));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 13)
                 {
-                    a->DriftRadius = fee_drift_12->Eval(Vec_o_test->at(n)-(dr_correction->Eval(13)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(13));
+                    a->DriftRadius = fee_drift_12->Eval(vec_driftTime->at(n)-(dr_correction->Eval(13)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(13));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 14)
                 {
-                    a->DriftRadius = fee_drift_13->Eval(Vec_o_test->at(n)-(dr_correction->Eval(14)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(14));
+                    a->DriftRadius = fee_drift_13->Eval(vec_driftTime->at(n)-(dr_correction->Eval(14)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(14));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 15)
                 {
-                    a->DriftRadius = fee_drift_14->Eval(Vec_o_test->at(n)-(dr_correction->Eval(15)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(15));
+                    a->DriftRadius = fee_drift_14->Eval(vec_driftTime->at(n)-(dr_correction->Eval(15)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(15));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
                 else if (FrontEnd == 16)
                 {
-                    a->DriftRadius = fee_drift_15->Eval(Vec_o_test->at(n)-(dr_correction->Eval(16)));
-                    a->drifttime = Vec_o_test->at(n)-(dr_correction->Eval(16));
+                    a->DriftRadius = fee_drift_15->Eval(vec_driftTime->at(n)-(dr_correction->Eval(16)));
+                    a->drifttime = vec_driftTime->at(n)-(dr_correction->Eval(16));
                     h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),a->drifttime);
                     h_Fee_DriftTime->Fill(FrontEnd,a->drifttime);
                  }
 
             }
-
-
-            // Double_t DT_correction = dr_correction->Eval(FrontEnd);
-
-             // h_Straw_DriftTime->Fill(vec_tdc_ch->at(n),Vec_o_test->at(n));
-             // h_Fee_DriftTime->Fill(FrontEnd,Vec_o_test->at(n));
-
-
-            //cout<<"DR_CORRECTION_parameters : "<<Vec_o_test->at(n)<<"\t"<<DT_correction<<"\t"<<vec_tdc_ch->at(n)<<endl;
-           
+          
             a->x = vec_x->at(n);
             a->y = vec_y->at(n);
             a->z = vec_z->at(n);
@@ -416,19 +394,11 @@ Bool_t Drift_Radius(void)
                 uuu = a->x;
 
             straws = new TEllipse(uuu, vec_z->at(n), 0.505, 0.505);
-          //box = new TBox(25,60,43,78);
-		 //	box->SetFillColor(37);
 
             TMultiGraph* mg = new TMultiGraph();
             TMultiGraph* mg1 = new TMultiGraph();
-
-            //cout<<"see :"<<a->drifttime<<"\t"<<a->layer<<"\t"<<a->module<<"\t"<<a->fee<<"\t"<<a->fee_channel<<"\t"<<a->x<<"\t"<<a->y<<"\t"<<a->z<<endl;
-            /////////
-
             cout << "\t" << vec_hits.size() << "\t" << vec_hits[n]->drifttime << "\t" << vec_hits[n]->layer << "\t" << vec_hits[n]->module << "\t" << vec_hits[n]->fee << "\t" << vec_hits[n]->fee_channel << "\t" << vec_hits[n]->x << "\t" << vec_hits[n]->y << "\t" << vec_hits[n]->z << "\t" << endl;
             straws->Draw("same");
-          //  box->Draw("same");
-
         }
 
         //Filter to get only the sets having unique Z values
@@ -483,13 +453,8 @@ Bool_t Drift_Radius(void)
             vec_strawY.clear();
             vec_strawZx.clear();
             vec_strawZy.clear();
-            for (Int_t j = 0; j < vec_hits_new.size(); j++) {
-
-                //cout<<"THIS IS Z :"<<vec_hits_new[j]->z<<endl;
-               /* strawX[j] = vec_hits_new[j]->x;
-                strawY[j] = vec_hits_new[j]->y;
-                strawZ[j] = vec_hits_new[j]->z;*/
-
+            for (Int_t j = 0; j < vec_hits_new.size(); j++) 
+            {
                 float uuu = 0.0;
                 bool is_y = (vec_hits_new[j]->layer % 2 == 0);
                 if (is_y)
@@ -537,9 +502,6 @@ Bool_t Drift_Radius(void)
 
                     vec_dr_xaxis[0].push_back(new_x1);
                     vec_dr_xaxis[1].push_back(new_x2);
-                    //zaxis[j]= vec_hits[j]->z;
-
-                    //cout<< "Xaxis :  "<<vec_hits[j]->layer<<"\t"<<vec_hits[j]->x<<"\t"<<vec_hits[j]->y<<"\t"<<vec_hits[j]->z<<"\t"<<vec_hits[j]->x<<"\t"<<dr1<<endl;
                     count++;
                 }
 
@@ -560,11 +522,6 @@ Bool_t Drift_Radius(void)
                     new_y1->fee = vec_hits_new[j]->fee;
                     new_y1->fee_channel = vec_hits_new[j]->fee_channel;
 
-                    /*if (vec_hits_new[j]->y >0)
-                    {
-                    strawY[j] = vec_hits_new[j]->y;
-                    }*/
-                    //cout<< "CHECK ::  "<<vec_hits_new[j]->y<<endl;
                     vec_strawY.push_back(vec_hits_new[j]->y);
                     vec_strawZy.push_back(vec_hits_new[j]->z);
 
@@ -576,30 +533,14 @@ Bool_t Drift_Radius(void)
                     new_y2->fee = vec_hits_new[j]->fee;
                     new_y2->fee_channel = vec_hits_new[j]->fee_channel;
 
-                    //SttHit* new_y1=vec_hits[j]->y+dr2;
-                    //SttHit* new_y2=vec_hits[j]->y-dr2;
                     vec_dr_yaxis[0].push_back(new_y1);
                     vec_dr_yaxis[1].push_back(new_y2);
 
                     yperfectmean[j] = dr2;
-                    //zaxis[j]= vec_hits[j]->z;
-                    //cout <<"\t"<< "Yaxis :"<<vec_hits[j]->y<<vec_hits[j]->layer<<endl;
-                    //<<"\t"<<vec_hits[j]->layer<<"\t"<<dr2<<endl;
-
                     count1++;
                 }
 
             }
-
-            /*for (Int_t jx=0; jx<4; jx++)
-            {
-            	 cout <<"Y here  :"<<" "<<strawY[jx]<<endl;
-
-            }*/
-
-            /////////////////////////////////////////FIND THE BEST COMBINATION//////////////////////////////////////////////////////
-
-            //COMBINATIONS to get least ChiSquar
 
             Int_t e_index = 0;
             std::vector<Double_t> chiX_array;
@@ -618,8 +559,6 @@ Bool_t Drift_Radius(void)
             int no_comb_x = pow(2, count);
             chiX_array.resize(no_comb_x);
             for (Int_t co = 0; co < no_comb_x; co++) {
-                //cout<<e_index<<endl;
-                //cout<<"{";
 
                 vector<Double_t> vt;
                 vt.clear();
@@ -630,28 +569,11 @@ Bool_t Drift_Radius(void)
 
                     A1[coo] = vec_dr_xaxis[comb_idx][coo]->x;
                     A2[coo] = vec_dr_xaxis[comb_idx][coo]->z;
-
-                    //cout<<"   STRAW_LOC  @@@@@@@@@@@@@@@@&&&&&&&&&:"<<vec_dr_xaxis[comb_idx][coo]->x<<"  ";
-
                     vt.push_back(vec_dr_xaxis[comb_idx][coo]->x);
                 }
 
-                myCombination.push_back(vt);
-
-                //cout<<"}";
-                cout << "\n";
-
-                //cout <<"size1 A1 :"<<(sizeof(A1))/8<<endl;
-                //cout <<"size2 A2:"<<(sizeof(A2))/8<<endl;
-                //cout <<"size3 xperfect2:"<<(sizeof(xperfect2))/8<<endl;
-
-             /*   for (Int_t cooo=0; cooo< myCombination;cooo++)
-			{
-				for( Int_t cro=0; cro < vt.size(); cro++)
-				{
-					cout << "Hello"<< " ";
-				}
-			}*/
+            myCombination.push_back(vt);
+            cout << "\n";
 			cout<<"\n"<<endl;
 			
                 TGraph* chiX = new TGraph(vt.size(), A1, A2);
@@ -710,25 +632,18 @@ Bool_t Drift_Radius(void)
 
                 xfit->GetXaxis()->SetLimits(x_min, x_max);
                 xfit->GetYaxis()->SetLimits(z_min, z_max);
-
                 xfit->GetXaxis()->SetTitle("X Axix [cm]");
                 xfit->GetYaxis()->SetTitle("Z Axix [cm]");
                 xfit->SetTitle("X-Coordinates");
-
                 xfit->SetMarkerStyle(7);
                 xfit->SetMarkerSize(1);
                 xfit->SetMarkerColor(kRed + 2);
                 xfit->SetLineColor(0);
                 xfit->SetLineWidth(2);
-
                 xfit1->SetLineColor(0);
-
                 xfit1->SetMarkerStyle(24);
                 xfit1->SetMarkerSize(2);
                 xfit1->SetMarkerColor(kRed + 2);
-                //xfit1->SetLineColor(kRed-10);
-                //xfit1->SetLineWidth(2);
-
                 xfit->Fit(f1);
 
                 f1 = xfit->GetFunction("f1");
@@ -736,7 +651,6 @@ Bool_t Drift_Radius(void)
                 Double_t p1 = f1->GetParameter(1);
                 theta_X = atan (1/p1);
                 cout<< " THETA X  : "<< theta_X <<endl;
-        		//emcX_arry[i] = (70 - p0) / p1;
         		for (Int_t af=40; af<100; af++)
                 {
                     h_projectionX->Fill(((af - p0) / p1),af);
@@ -747,21 +661,15 @@ Bool_t Drift_Radius(void)
                 for (Int_t k = 0; k < count; k++) {
 
                     xperfect3[k] = (A2[k] - p0) / p1;
-
                     cout << "SPACE X  :" << fabs(A1[k] - xperfect3[k]) << endl;
-
                     dSlope0 = -(1/p1);
                     dConst0 = vec_strawZx[k]+(vec_strawX[k]/p1);
                     X_perpX = (dConst0 - p0) / (p1 + (1/p1));
                     X_perpY = (dSlope0 * X_perpX) + dConst0;
                     X_short = (fabs(sqrt(((vec_strawX[k] - X_perpX) * (vec_strawX[k] - X_perpX)) + ((vec_strawZx[k] - X_perpY) * (vec_strawZx[k] - X_perpY)) ))) - (fabs(vec_strawX[k] - A1[k]));
-
                     hx -> Fill(X_short);
-
                     vec_Xtheta.push_back(theta_X);
                     vec_Xsr.push_back(X_short);
-
-
                 }
                 cout << "\n\n" << endl;
             }
@@ -799,14 +707,10 @@ Bool_t Drift_Radius(void)
                 }
 
                 myCombination1.push_back(vt1);
-
-                //cout<<"}";
                 cout << "\n";
 
                 cout << "size1 B1 :" << (sizeof(B1)) / 8 << endl;
                 cout << "size2 B2:" << (sizeof(B2)) / 8 << endl;
-//                cout << "size3 yperfect2:" << (sizeof(yperfect2)) / 8 << endl;
-
                 for (Int_t coooq = 0; coooq < total_pairs; coooq++) {
                     cout << "\t\t" << B1[coooq] << "\t";
                 }
@@ -815,8 +719,6 @@ Bool_t Drift_Radius(void)
                 TGraph* chiY = new TGraph(vt1.size(), B1, B2);
                 chiY->Fit(f4);
                 chi_value1 = f4->GetChisquare();
-                //	cout<<"\n\n@#$@#$@#$@#$@#$"<<chi_value<<endl;
-
                 chiY_array[co] = chi_value1;
             }
 
@@ -856,26 +758,18 @@ Bool_t Drift_Radius(void)
 
                 yfit = new TGraph(count1, Why, B2);
                 yfit1 = new TGraph(vec_hits_new.size(), strawY, strawZ);
-
-                //				yfit->GetXaxis()->SetLimits(40,100);
-
-                //TGraph* yfit2 = new TGraph(vt1.size(),yperfectmean,yperfect2);
-
                 yfit->GetXaxis()->SetTitle("Y Axix [cm]");
                 yfit->GetYaxis()->SetTitle("Z Axix [cm]");
                 yfit->SetTitle("Y-Coordinates");
-
                 yfit->SetMarkerStyle(7);
                 yfit->SetMarkerSize(2);
                 yfit->SetMarkerColor(kBlue + 2);
                 yfit->SetLineColor(0);
                 yfit->SetLineWidth(2);
-
                 yfit1->SetMarkerStyle(24);
                 yfit1->SetMarkerSize(2);
                 yfit1->SetMarkerColor(kBlue + 2);
                 yfit1->SetLineColor(0);
-
                 yfit->Fit(f2);
 
                 f2 = yfit->GetFunction("f2");
@@ -890,21 +784,10 @@ Bool_t Drift_Radius(void)
                  }
 
 	            h_theeta_Y->Fill(theta_Y);
-
-        		//cout << " EMC   :   Y "<< ((70 - pp0) / pp1)<<endl;
-
-                //yfit->SetPoint(1, 10,10);
-
                 for (Int_t kk = 0; kk < count1; kk++) {
 
                     yperfect3[kk] = (B2[kk] - pp0) / pp1;
                     cout << "SPACE Y  :" << fabs(B1[kk] - yperfect3[kk]) << endl;
-                   // hy->Fill(fabs(B1[kk] - yperfect3[kk]));
-
-                   // cout << "Double Check Y :"<< vec_strawY[kk]<<endl;
-
-
-
                     dSlope = -(1/pp1);
                     dConst = vec_strawZy[kk]+(vec_strawY[kk]/pp1);
                     Y_perpX = (dConst - pp0) / (pp1 + (1/pp1));
@@ -918,40 +801,15 @@ Bool_t Drift_Radius(void)
                 }
             }
 
-          //  cout << "\nEMC XYZ   :     "<< emcX << " - "<< emcY<<endl;
-
-            //mg->Add(yfit);
-            //mg->Add(yfit2);
-            //xfit1->Draw("AP");
-            //mg->Add(yfit);
-
-            /*mg->Add(xfit);
-		mg->Add(xfit1);
-		mg->Write("X");
-		mg1->Add(yfit);
-		mg1->Add(yfit1);
-		mg1->Write("Y");*/
-
             xfit->Draw("same,P");
             xfit->Write("X");
             yfit->Draw("same,P");
             yfit->Write("Y");
 
-      //  emcX_arry[i] = emcX;
-       // emcY_arry[i] = emcY; 
-
-
         }
-
-      // cout << "\n\nEMC COORDINATES : "<< emcX << "  -  "<< emcY<< endl;
- 
-
 
         c1->Write();
         c1->Close();
-
-
-
     }
 
 
@@ -988,33 +846,17 @@ for (Int_t ij=0; ij<vec_Fee_drift_time.size(); ij++)
             cout<<"Minimum : "<<"\t"<<vec_Fee_drift_time.size()<<"\t"<<ij<<"\t"<<vec_Fee_drift_time.at(ij).size()<<"\t"<<min_DT<<endl;
         }
 
-
-
-
-
     Double_t emcX_arry[100000];
     Double_t emcY_arry[100000];
 
     cout << "all driftradius   :" << vec_driftradius.size() << endl;
-    
-    // for ( Int_t ev=0; ev< vec_emcX.size(); ev++)
-    // {
-    //     emcX_arry[ev] = vec_emcX[ev];
-    //     emcY_arry[ev] = vec_emcY[ev];
-    //     h_projection->Fill(vec_emcX[ev],vec_emcY[ev]);
-    // }
-         cout << "\n\n\n SIZES   :   " << vec_emcX.size()<< "  -  "<< vec_emcX.size()<<endl;
-     	// cout << "\n\n\n SIZES   :   " << emcX_arry.length<< "  -  "<< emcY_arry.length<<endl;
-           /*  for ( Int_t abc = 0; abc < vec_emcX.size(); abc++)
-		    {
-		    	cout << "\n\n\nEMC COORDINATES : "<< emcX_arry[abc] << "  -  "<< emcY_arry[abc]<< endl;
-		    }  */ 
+    cout << "\n\n\n SIZES   :   " << vec_emcX.size()<< "  -  "<< vec_emcX.size()<<endl;
+
     emc = new TGraph(vec_emcX.size(), emcX_arry, emcY_arry);
 	emc->SetMarkerStyle(3);
 	emc->SetMarkerSize(1);
 	emc->SetMarkerColor(2);
 	emc->SetLineColor(0);
-	//emc->SetLineWidth(2);
     hx->Write();
     hy->Write();
     h_theeta_X->Write();
@@ -1022,16 +864,16 @@ for (Int_t ij=0; ij<vec_Fee_drift_time.size(); ij++)
     h_projectionX->Write();
     h_projectionY->Write();
 
-cout <<"THETA SIZE : "<<vec_Xsr.size()<<"  "<<vec_Xtheta.size()<<endl;
+    cout <<"THETA SIZE : "<<vec_Xsr.size()<<"  "<<vec_Xtheta.size()<<endl;
 
-Double_t arr_Xt[500];
-Double_t arr_Xsr[500];
+    Double_t arr_Xt[500];
+    Double_t arr_Xsr[500];
 
-for (tt =0; tt< 500; tt++)
-{
-arr_Xt[tt]=vec_Xtheta[tt];
-arr_Xsr[tt]=vec_Xsr[tt];
-}
+    for (tt =0; tt< 500; tt++)
+    {
+    arr_Xt[tt]=vec_Xtheta[tt];
+    arr_Xsr[tt]=vec_Xsr[tt];
+    }
     theta_SR = new TGraph(500, arr_Xt, arr_Xsr);
    
     theta_SR->Draw();
