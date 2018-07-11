@@ -10,8 +10,7 @@ SttHit::SttHit() {
 		leadTime = 0;
 		trailTime = 0;
 		tot = 0;
-
-
+		
 		drifttime =0;
 		DriftRadius =0;
 		layer = 0;

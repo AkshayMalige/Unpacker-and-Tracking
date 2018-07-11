@@ -97,7 +97,7 @@ Bool_t Drift_Radius(void)
     Double_t F7[2000];
     Double_t F8[2000];
     Double_t F9[2000];
-    Double_t F10[2000];  
+    Double_t F10[2000]; 
     Double_t F11[2000];
     Double_t F12[2000];
     Double_t F13[2000];
@@ -105,7 +105,7 @@ Bool_t Drift_Radius(void)
     Double_t F15[2000];
     Double_t F16[2000];
     Double_t F17[2000];
-    Double_t F18[2000];  
+    Double_t F18[2000]; 
     Double_t F19[2000];
     Double_t F20[2000];
     Double_t F21[2000];
@@ -196,8 +196,7 @@ Bool_t Drift_Radius(void)
     SttHit* new_y2 = 0;
 
     Int_t iev = (Int_t)tree->GetEntries();
-    cout << "number of entries in tree:" << iev << endl
-         << endl;
+    cout << "number of entries in tree:" << iev << endl << endl;
 
     vector<SttHit*> vec_hits;
     vector<SttHit*> vec_hits_new;

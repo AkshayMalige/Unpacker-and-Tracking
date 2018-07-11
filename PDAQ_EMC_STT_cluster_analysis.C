@@ -696,10 +696,10 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
                     if (hit->isRef) continue;
 
                     sprintf(buff, "[%d / %d]  cell,l,m,c,cf=%d,%d,%d,%2d,%2d    x,y,z=%.3f,%.3f,%.3f  lt=%f   dt=%f\n",
-                           global_cnt, local_cnt,
-                           hit->cell, hit->layer, hit->module, hit->channel, hit->fee_channel,
-                           hit->x, hit->y, hit->z,
-                           hit->leadTime, hit->drifttime);
+                       global_cnt, local_cnt,
+                       hit->cell, hit->layer, hit->module, hit->channel, hit->fee_channel,
+                       hit->x, hit->y, hit->z,
+                       hit->leadTime, hit->drifttime);
                     printf(buff);
                     fprintf(fp, buff);
                     ++local_cnt;

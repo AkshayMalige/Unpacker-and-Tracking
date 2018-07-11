@@ -91,7 +91,6 @@ std::vector<std::vector<SttHit*>*>* clusterfinder(std::vector<SttHit*>* vec_flay
      }
 }
 
-
 std::vector<SttHit*>  GetPairs(std::vector<SttHit*> vec_get_pairs)
 {
     std::vector<SttHit*> vec_fpair_clu;
@@ -130,7 +129,7 @@ std::vector<SttHit*>  GetPairs(std::vector<SttHit*> vec_get_pairs)
 
  }
 
-Bool_t stage2(void)
+Bool_t PDAQ_Cluster_Finder(void)
 {
 
     TFile file("Stage1.root", "READ");
@@ -217,18 +216,21 @@ Bool_t stage2(void)
     TH2F* h_XvsZ = new TH2F("h_XvsZ", "h_XvsZ", 100, -20, 80, 100, -20, 80);
     TH2F* h_YvsZ = new TH2F("h_YvsZ", "h_YvsZ", 100, 0, 100, 100, 0, 100);
     TH1F* h_STT_EMC_timeDiff = new TH1F("h_STT_EMC_timeDiff", "h_STT_EMC_timeDiff", 600, 100, 700);
+    
+    TH2F* h_Straw_DriftTime = new TH2F("h_Straw_DriftTime", "h_Straw_DriftTime", 296, 0, 296, 700, 0, 700);
+    TH2F* h_Fee_DriftTime = new TH2F("h_Fee_DriftTime", "h_Fee_DriftTime", 16, 0, 16, 700, 0, 700);
 
     TH1F* h_straw_mean_straw = new TH1F("h_straw_mean_straw", "h_straw_mean_straw", 6000, -1000, 7000);
 
     TH1F* h_Front = new TH1F("h_Front", "h_Front", 600, 100, 700);    
+    TH1F* h_FrontNO = new TH1F("h_FrontNO", "h_FrontNO", 20, 0, 20);    
 
-// TH1F* h_Front[16];
-// for (int i = 0; i < 16; i++) 
-// {
-//     //h_Front[i] = new TH1F(Form("h_Front%d", i + 1), Form("h_Front%d", i + 1), 600, 100, 700 );
-//     h_Front[i] = new TH1F(TString::Format("h_Front%i", i), "h_Front", 600, 100, 700);
-// }
+    TH1F* h_Fee[18];
 
+    for (int i = 0; i < 18; i++) 
+    {
+        h_Fee[i] = new TH1F(TString::Format("h_Fee%i", i), "h_Fee", 600, 100, 700);
+    }
 
     Int_t iev = (Int_t)tree->GetEntries();
     cout << "number of entries in tree:" << iev << endl
@@ -247,10 +249,9 @@ Bool_t stage2(void)
         
         vec_stthits.clear();
 
-       //std::sort(vec_Stage_cell->begin(), vec_Stage_cell->end());
+    //std::sort(vec_Stage_cell->begin(), vec_Stage_cell->end());
 
-
-        //Loop over the vector elements//////////////////////////////////////////////////////
+    //Loop over the vector elements//////////////////////////////////////////////////////
         for (int n = 0; n < oiv; n++) 
         {
             SttHit* u = new SttHit();
@@ -358,7 +359,6 @@ Bool_t stage2(void)
             std::vector<double> vec_Chi2x;
             std::vector<double> vec_Chi2y;
 
-
 // FILTER TO GET ONLY HITS WITH A PAIR////////////////////////////////////////////////////////////
             std::vector<SttHit*> vec_pair_clu;
             vec_pair_clu.clear();
@@ -383,7 +383,6 @@ Bool_t stage2(void)
             }
             else continue;
 
-
 for (Int_t a =0; a< vec_pair_layer11.size(); a++)
 {
  
@@ -401,15 +400,10 @@ cout<<"COUT : "<<vec_pair_layer11[a]->cell<<endl;
             }
             else continue;
 
-
-
 std::vector< vector<SttHit*> > vec_All_X;
 std::vector< vector<SttHit*> > vec_All_Y;
 vec_All_X.clear();
 vec_All_Y.clear();
-
-
-
 
 for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
 {
@@ -610,8 +604,8 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
 
     for ( Int_t tx =0; tx <vec_tracks.size(); tx++)
        {
-        h_straw_mean_straw->Fill((vec_tracks[tx]->leadTime- mean_leadtime));
-       // cout<<" straw leadtime- mean leadtime : "<<(vec_tracks[tx]->leadTime- mean_leadtime)<<endl;
+         h_straw_mean_straw->Fill((vec_tracks[tx]->leadTime- mean_leadtime));
+
          }
 
     vec_Chi2x.clear();
@@ -625,6 +619,15 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
     std::vector<Int_t> vec_dr_correction;
     Int_t ar_dr_channel[296];
     Int_t ar_dr_correction[296];
+
+    for ( Int_t ef=0; ef< vec_Allhits.size(); ef++)
+    {
+        Int_t FrontEnd = ((4*(vec_Allhits[ef]->layer - 1))+(2*(vec_Allhits[ef]->module)-1)+((vec_Allhits[ef]->fee)-1));
+        h_Straw_DriftTime->Fill(vec_Allhits[ef]->channel,vec_Allhits[ef]->drifttime);
+        h_Fee_DriftTime->Fill(FrontEnd,vec_Allhits[ef]->drifttime);
+        h_Fee[FrontEnd]->Fill(vec_Allhits[ef]->drifttime);
+        h_FrontNO->Fill(FrontEnd);
+      }
 
 for (Int_t ch = 1; ch<17; ch++)
 {
@@ -730,7 +733,7 @@ for (Int_t ij=0; ij<vec_Fee_drift_time.size(); ij++)
                 // cout<< vec_roundoff[j] << "\t" << occ_count <<  endl;
             }
 
-        //     // Calculate the cummulative sum (integral) of the occurances.
+        // Calculate the cummulative sum (integral) of the occurances.
 
             for (int m = 0; m < vec_occurance.size(); m++)
             {
@@ -744,7 +747,7 @@ for (Int_t ij=0; ij<vec_Fee_drift_time.size(); ij++)
                 vec_cumsum.push_back(sum);
             }
 
-        //     //Calculate the drift radius.
+         //Calculate the drift radius.
 
             Int_t max_dr = driftTimeCounter2;
             Int_t dt_range = vec_cumsum.size();
