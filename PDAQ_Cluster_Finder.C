@@ -580,6 +580,8 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
     vec_cell.clear();
     vec_tdc_ch.clear();
 
+//Write Tracks
+
     for (Int_t tq=0; tq<vec_tracks.size(); tq++)
     {
         cout<<"TRACKS  : "<<vec_tracks[tq]->layer<<"\t"<<vec_tracks[tq]->cell<<"\t"<<vec_tracks[tq]->channel<<endl;
