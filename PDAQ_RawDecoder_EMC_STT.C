@@ -249,7 +249,6 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
     Double_t doubleCntr =0;
     Double_t doubleCntr1 =0;
 
-
 	// initialize stt data
 
 	stt_channel_offsets[0xe100] = 0 * 49;
@@ -634,8 +633,6 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 					}
 				}
 
-
-
 					else if (((sub[i] >> 28) & 0xf) == 0x6) {  // epoch counter
 						epoch = sub[i] & 0xffffff;
 
@@ -653,15 +650,17 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 		}
 
 
-	} else { // skip data
-	    while(n_bytes < Data_size){
+	} 
+	else 
+	{ 
+	// skip data
+	    while(n_bytes < Data_size)
+	    {
 	        // Header, w1
 	        in_file.read((char*)&data4,4);
 	        n_bytes += 4;
 	    }
 	}
-
-
 
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     }

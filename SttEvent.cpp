@@ -1,5 +1,3 @@
-
-
 #include "SttEvent.h"
 
 ClassImp(SttEvent)
