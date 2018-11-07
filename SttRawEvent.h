@@ -1,38 +1,38 @@
-#ifndef H_STT_EVENT
-#define H_STT_EVENT
+#ifndef H_STT_RAW_EVENT
+#define H_STT_RAW_EVENT
 
 #include <TNamed.h>
 #include <TClonesArray.h>
 #include "SttHit.h"
-#include "SttRawHit.h"
+//#include "SttRawHit.h"
 
 
-class SttEvent : public TNamed {
+class SttRawEvent : public SttHit {
 public:
 
 	TClonesArray* tdc_hits; 
 	int totalNTDCHits;
 	
-	// TClonesArray* tdc_events; 
-	// int totalNTDCEvents;
+	TClonesArray* tdc_events; 
+	int totalNTDCEvents;
 
 	// TClonesArray* tdc_raw; 
 	// int rawNTDCEvents;
 	
-	SttEvent();
-	virtual ~SttEvent() { Clear(); }
+	SttRawEvent();
+	virtual ~SttRawEvent() { Clear(); }
 
 	void Clear(void);
 
 	SttRawHit* AddHit(int channel);
-	//SttHit* event_size(int stt_tdc_event_sizes);
+	SttRawHit* event_size(int stt_tdc_event_sizes);
 
 	//SttRawHit* AddRawHit(int channel);
 
 	// SttRawHit* AddHit(int channel);
 	// SttRawHit* event_size(int stt_tdc_event_sizes);
 
-	ClassDef(SttEvent, 1)
+	ClassDef(SttRawEvent, 1)
 };
 
 #endif

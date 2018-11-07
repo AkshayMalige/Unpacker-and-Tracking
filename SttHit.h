@@ -2,14 +2,16 @@
 #define H_STT_HIT
 
 #include <TNamed.h>
+#include <SttRawHit.h>
 
 
-class SttHit : public TNamed {
+class SttHit : public SttRawHit {
 public:
-	int channel;
-	double leadTime;
-	double trailTime;
-	double tot;
+	// int channel;
+	// int stt_tdc_event_sizes;
+	// double leadTime;
+	// double trailTime;
+	// double tot;
 	double drifttime;
 	double DriftRadius;
 
@@ -23,9 +25,9 @@ public:
 	double y;
 	double z;
 
+	//short cell2;
 
-
-	bool isRef;
+	//bool isRef;
 
 	SttHit();
 
@@ -37,7 +39,6 @@ public:
 	ClassDef(SttHit, 1)
 
 };
-
-
-
 #endif
+
+

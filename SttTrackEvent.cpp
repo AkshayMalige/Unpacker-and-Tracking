@@ -1,27 +1,27 @@
-#include "SttEvent.h"
+#include "SttTrackEvent.h"
 
-ClassImp(SttEvent)
+ClassImp(Stt_Track_Event)
 
-SttEvent::SttEvent() {
-	tdc_hits = new TClonesArray("SttRawHit", 1000);
+Stt_Track_Event::Stt_Track_Event() {
+	tdc_track_hits = new TClonesArray("SttTrackHit", 1000);
 	//tdc_events = new TClonesArray("SttHit", 1000);
 	//tdc_raw = new TClonesArray("SttRawHit", 1000);
 
 
 
-	totalNTDCHits = 0;
+	total_track_NTDCHits = 0;
 	//totalNTDCEvents = 0;
 	//rawNTDCEvents =0;
 
 
 }
 
-SttRawHit* SttEvent::AddHit(int channel) {
-	TClonesArray& thits = *tdc_hits;
-	SttRawHit* hit = new (thits[totalNTDCHits++]) SttRawHit();
-	hit->SetChannel(channel);
+SttTrackHit* Stt_Track_Event::AddTrackHit() {
+	TClonesArray& thits = *tdc_track_hits;
+	SttTrackHit* track_hit = new (thits[total_track_NTDCHits++]) SttTrackHit();
+	//track_hit->SetChannel(trackId);
 
-	return hit;
+	return track_hit;
 }
 
 // SttHit* SttEvent::event_size(int stt_tdc_event_sizes) {
@@ -40,8 +40,8 @@ SttRawHit* SttEvent::AddHit(int channel) {
 // 	return trawevents;
 // }
 
-void SttEvent::Clear(void) {
-	tdc_hits->Clear("C");
+void Stt_Track_Event::TrackClear(void) {
+	tdc_track_hits->Clear("C");
 
 
 	//tdc_events->Clear("C");
@@ -50,7 +50,7 @@ void SttEvent::Clear(void) {
 //	delete tdc_hits;
 //	tdc_hits = new TClonesArray("SttHit", 1000);
 
-	totalNTDCHits = 0;
+	total_track_NTDCHits = 0;
 	//totalNTDCEvents = 0;
 	//rawNTDCEvents = 0;
 

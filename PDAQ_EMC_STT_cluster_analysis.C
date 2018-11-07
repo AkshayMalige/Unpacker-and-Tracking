@@ -23,9 +23,6 @@
 
 //===================================================================
 
-const int Max_N_Channels = 1000;
-const double time_to_ns = 12.5 / 2048;
-
 //===================================================================
 #define MAKE_HST_IND(hstname, bins, minx, maxx, ind, tstr)                                         \
     {                                                                                              \
@@ -74,19 +71,19 @@ const double time_to_ns = 12.5 / 2048;
 
 //===================================================================
 // Define histograms
-TH1F* h_EMC_ADC_channels_hits;
-TH1F* h_EMC_multiplicity_cl;
-TH1F* h_EMC_multiplicity_SB;
+// TH1F* h_EMC_ADC_channels_hits;
+// TH1F* h_EMC_multiplicity_cl;
+// TH1F* h_EMC_multiplicity_SB;
 //
-static const int emc_h_energy_size = 50;
-TH1F* h_EMC_RawTime[emc_h_energy_size];
-TH1F* h_EMC_RawEnergy[emc_h_energy_size];
-TH1F* h_EMC_RawEnergy_CrCoinc[emc_h_energy_size];
-TH1F* h_EMC_dT_Cgated;
+// static const int emc_h_energy_size = 50;
+// TH1F* h_EMC_RawTime[emc_h_energy_size];
+// TH1F* h_EMC_RawEnergy[emc_h_energy_size];
+// TH1F* h_EMC_RawEnergy_CrCoinc[emc_h_energy_size];
+// TH1F* h_EMC_dT_Cgated;
 //
-const int emc_matrix_size = 9;
-TH1F* h_EMC_EnergyC[emc_matrix_size];
-TH1F* h_EMC_EnergyC_track[emc_matrix_size];
+// const int emc_matrix_size = 9;
+// TH1F* h_EMC_EnergyC[emc_matrix_size];
+// TH1F* h_EMC_EnergyC_track[emc_matrix_size];
 
 TH1F* h_STT_layers;
 TH1F* h_STT_channelsWithoutRef;
@@ -97,24 +94,24 @@ TH1F* h_STT_layerhits;
 TH1F* h_STT_layerMult;
 TH1F* h_STT_leadTimeDiff;
 TH2F* h_STT_TOTvsCh;
-TH1F* h_STT_EMC_cosmic;
-TH1F* h_EMC_trueMultiplicity;
-TH1F* h_STT_EMC_trueMultiplicity;
-TH1F* h_EMC_clusters_per_SB;
+//TH1F* h_STT_EMC_cosmic;
+//TH1F* h_EMC_trueMultiplicity;
+//TH1F* h_STT_EMC_trueMultiplicity;
+//TH1F* h_EMC_clusters_per_SB;
 
-TH1F* h_emc_cosmic;
+//TH1F* h_emc_cosmic;
 TH1F* h_stt_cosmic;
 
-TH1F* h_EMC_EnergyCut_track[emc_matrix_size];
-TH1F* h_EMC_EnergyCut2_track[emc_matrix_size];
+//TH1F* h_EMC_EnergyCut_track[emc_matrix_size];
+//TH1F* h_EMC_EnergyCut2_track[emc_matrix_size];
 
-TH1F* h_EMC_sumEnergyCut_track;
-TH1F* h_EMC_sumEnergyCut2_track;
-TH1F* h_STT_EMC_crystmult;
+//TH1F* h_EMC_sumEnergyCut_track;
+//TH1F* h_EMC_sumEnergyCut2_track;
+//TH1F* h_STT_EMC_crystmult;
 TH1F* h_STT_layerhitsmult;
 TH1F* h_STT_counts;
 
-TH1F* h_straw_mean_EMC;
+//TH1F* h_straw_mean_EMC;
 TH1F* h_straw_mean_straw;
 
 TH2F* h_Fee_DriftTime;
@@ -135,31 +132,31 @@ bool f_sttHitCompareLeadTime(SttHit* a, SttHit* b)
 // init histograms
 void pd_init_hst()
 {
-    char tstr[200];
+    // char tstr[200];
+    // //
+    // MAKE_HST(h_EMC_ADC_channels_hits, 60000, 0, 60000);
+    // for (int i = 0; i < emc_h_energy_size; i++)
+    // {
+    //     MAKE_HST_IND(h_EMC_RawTime, 200, -20, 20, i, tstr);
+    //     MAKE_HST_IND(h_EMC_RawEnergy, 6000, 0, 60000, i, tstr);
+    //     MAKE_HST_IND(h_EMC_RawEnergy_CrCoinc, 6000, 0, 60000, i, tstr);
+    // }
+    // for (int i = 0; i < emc_matrix_size; i++)
+    // {
+    //     MAKE_HST_IND(h_EMC_EnergyC, 6000, 0, 60000, i, tstr);
+    //     MAKE_HST_IND(h_EMC_EnergyC_track, 6000, 0, 60000, i, tstr);
+    //     MAKE_HST_IND(h_EMC_EnergyCut_track, 6000, 0, 60000, i, tstr);
+    //     MAKE_HST_IND(h_EMC_EnergyCut2_track, 6000, 0, 60000, i, tstr);
+    // }
+
+    // MAKE_HST(h_EMC_sumEnergyCut_track, 6000, 0, 6000);
+    // MAKE_HST(h_EMC_sumEnergyCut2_track, 6000, 0, 6000);
+
+
     //
-    MAKE_HST(h_EMC_ADC_channels_hits, 60000, 0, 60000);
-    for (int i = 0; i < emc_h_energy_size; i++)
-    {
-        MAKE_HST_IND(h_EMC_RawTime, 200, -20, 20, i, tstr);
-        MAKE_HST_IND(h_EMC_RawEnergy, 6000, 0, 60000, i, tstr);
-        MAKE_HST_IND(h_EMC_RawEnergy_CrCoinc, 6000, 0, 60000, i, tstr);
-    }
-    for (int i = 0; i < emc_matrix_size; i++)
-    {
-        MAKE_HST_IND(h_EMC_EnergyC, 6000, 0, 60000, i, tstr);
-        MAKE_HST_IND(h_EMC_EnergyC_track, 6000, 0, 60000, i, tstr);
-        MAKE_HST_IND(h_EMC_EnergyCut_track, 6000, 0, 60000, i, tstr);
-        MAKE_HST_IND(h_EMC_EnergyCut2_track, 6000, 0, 60000, i, tstr);
-    }
-
-    MAKE_HST(h_EMC_sumEnergyCut_track, 6000, 0, 6000);
-    MAKE_HST(h_EMC_sumEnergyCut2_track, 6000, 0, 6000);
-
-
-    //
-    MAKE_HST(h_EMC_dT_Cgated, 1000, -50, 50);
-    MAKE_HST(h_EMC_multiplicity_cl, 50, 0, 50);
-    MAKE_HST(h_EMC_multiplicity_SB, 50, 0, 50);
+    // MAKE_HST(h_EMC_dT_Cgated, 1000, -50, 50);
+    // MAKE_HST(h_EMC_multiplicity_cl, 50, 0, 50);
+    // MAKE_HST(h_EMC_multiplicity_SB, 50, 0, 50);
 
 
     MAKE_HST(h_STT_layers, 10, 0, 10);
@@ -171,14 +168,14 @@ void pd_init_hst()
     MAKE_HST(h_STT_leadTimeDiff, 500, 0, 500);
     MAKE_HST2(h_STT_TOTvsCh, 300, 0, 300, 500, 0, 500);
 
-    MAKE_HST(h_EMC_clusters_per_SB, 10, 0, 10);
-    MAKE_HST(h_STT_EMC_cosmic, 5, 0, 5);
-    MAKE_HST(h_EMC_trueMultiplicity, 50, 0, 50);
-    MAKE_HST(h_STT_EMC_trueMultiplicity, 50, 0, 50);
+    //MAKE_HST(h_EMC_clusters_per_SB, 10, 0, 10);
+    //MAKE_HST(h_STT_EMC_cosmic, 5, 0, 5);
+    //MAKE_HST(h_EMC_trueMultiplicity, 50, 0, 50);
+    //MAKE_HST(h_STT_EMC_trueMultiplicity, 50, 0, 50);
 
-    MAKE_HST(h_emc_cosmic, 5, 0, 5);
+    //MAKE_HST(h_emc_cosmic, 5, 0, 5);
     MAKE_HST(h_stt_cosmic, 5, 0, 5);
-    MAKE_HST(h_STT_EMC_crystmult, 100, 0, 100);
+    //MAKE_HST(h_STT_EMC_crystmult, 100, 0, 100);
     MAKE_HST(h_STT_layerhitsmult, 10, 0, 10);
     MAKE_HST(h_STT_counts, 10, 0, 10);
 
@@ -207,16 +204,16 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
     UInt_t SB_number;
     //-------------------------------------------------------------------
     // EMC
-    std::vector<UInt_t>* emc_Cluster_local_time = 0;
-    std::vector<UShort_t>* emc_Cluster_diameter = 0;
-    std::vector<UShort_t>* emc_Cluster_2x = 0;
-    std::vector<UShort_t>* emc_Cluster_2y = 0;
-    std::vector<UShort_t>* emc_Cluster_N_hits = 0;
-    //
-    std::vector<UInt_t>* emc_Hits_local_time = 0;
-    std::vector<UChar_t>* emc_Hits_status = 0;
-    std::vector<UShort_t>* emc_Hits_ADC_channel = 0;
-    std::vector<UShort_t>* emc_Hits_Energy = 0;
+    // std::vector<UInt_t>* emc_Cluster_local_time = 0;
+    // std::vector<UShort_t>* emc_Cluster_diameter = 0;
+    // std::vector<UShort_t>* emc_Cluster_2x = 0;
+    // std::vector<UShort_t>* emc_Cluster_2y = 0;
+    // std::vector<UShort_t>* emc_Cluster_N_hits = 0;
+    // //
+    // std::vector<UInt_t>* emc_Hits_local_time = 0;
+    // std::vector<UChar_t>* emc_Hits_status = 0;
+    // std::vector<UShort_t>* emc_Hits_ADC_channel = 0;
+    // std::vector<UShort_t>* emc_Hits_Energy = 0;
 
     std::vector<SttHit*> vec_Allhits;
 
@@ -234,64 +231,64 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
     }
     //-------------------------------------------------------------------
     // Header variables
-    tree->SetBranchAddress("Header_status", &Header_status);
-    tree->SetBranchAddress("SB_number", &SB_number);
-    //
-    // EMC data
-    tree->SetBranchAddress("emc_Cluster_local_time", &emc_Cluster_local_time);
-    tree->SetBranchAddress("emc_Cluster_diameter", &emc_Cluster_diameter);
-    tree->SetBranchAddress("emc_Cluster_2x", &emc_Cluster_2x);
-    tree->SetBranchAddress("emc_Cluster_2y", &emc_Cluster_2y);
-    tree->SetBranchAddress("emc_Cluster_N_hits", &emc_Cluster_N_hits);
-    //
-    tree->SetBranchAddress("emc_Hits_local_time", &emc_Hits_local_time);
-    tree->SetBranchAddress("emc_Hits_status", &emc_Hits_status);
-    tree->SetBranchAddress("emc_Hits_ADC_channel", &emc_Hits_ADC_channel);
-    tree->SetBranchAddress("emc_Hits_Energy", &emc_Hits_Energy);
+    // tree->SetBranchAddress("Header_status", &Header_status);
+    // tree->SetBranchAddress("SB_number", &SB_number);
+    // //
+    // // EMC data
+    // tree->SetBranchAddress("emc_Cluster_local_time", &emc_Cluster_local_time);
+    // tree->SetBranchAddress("emc_Cluster_diameter", &emc_Cluster_diameter);
+    // tree->SetBranchAddress("emc_Cluster_2x", &emc_Cluster_2x);
+    // tree->SetBranchAddress("emc_Cluster_2y", &emc_Cluster_2y);
+    // tree->SetBranchAddress("emc_Cluster_N_hits", &emc_Cluster_N_hits);
+    // //
+    // tree->SetBranchAddress("emc_Hits_local_time", &emc_Hits_local_time);
+    // tree->SetBranchAddress("emc_Hits_status", &emc_Hits_status);
+    // tree->SetBranchAddress("emc_Hits_ADC_channel", &emc_Hits_ADC_channel);
+    // tree->SetBranchAddress("emc_Hits_Energy", &emc_Hits_Energy);
     //.......................
     // STT data
-    printf("Connecting stt branch: %d\n", tree->SetBranchAddress("stt_events", &stt_events));
+    printf("Connecting stt branch: %d\n", tree->SetBranchAddress("STT", &STT));
     //===================================================================
     // Constants
-    const int emc_adc_chan_ofset = 16;
-    //
-    float emc_EC_cosm_gates[2 * emc_matrix_size];
-    // ch 1
-    emc_EC_cosm_gates[0] = 800 / 4;
-    emc_EC_cosm_gates[1] = 1800;
-    // ch 2
-    emc_EC_cosm_gates[2] = 500 / 4;
-    emc_EC_cosm_gates[3] = 900;
-    // ch 3
-    emc_EC_cosm_gates[4] = 450 / 4;
-    emc_EC_cosm_gates[5] = 1000;
-    // ch 4
-    emc_EC_cosm_gates[6] = 350 / 4;
-    emc_EC_cosm_gates[7] = 700;
-    // ch 5
-    emc_EC_cosm_gates[8] = 450 / 4;
-    emc_EC_cosm_gates[9] = 800;
-    // ch 6
-    emc_EC_cosm_gates[10] = 500 / 4;
-    emc_EC_cosm_gates[11] = 1000;
-    // ch 7
-    emc_EC_cosm_gates[12] = 450 / 4;
-    emc_EC_cosm_gates[13] = 1000;
-    // ch 8
-    emc_EC_cosm_gates[14] = 350 / 4;
-    emc_EC_cosm_gates[15] = 800;
-    // ch 9
-    emc_EC_cosm_gates[16] = 500 / 4;
-    emc_EC_cosm_gates[17] = 1000;
+    // const int emc_adc_chan_ofset = 16;
+    // //
+    // float emc_EC_cosm_gates[2 * emc_matrix_size];
+    // // ch 1
+    // emc_EC_cosm_gates[0] = 800 / 4;
+    // emc_EC_cosm_gates[1] = 1800;
+    // // ch 2
+    // emc_EC_cosm_gates[2] = 500 / 4;
+    // emc_EC_cosm_gates[3] = 900;
+    // // ch 3
+    // emc_EC_cosm_gates[4] = 450 / 4;
+    // emc_EC_cosm_gates[5] = 1000;
+    // // ch 4
+    // emc_EC_cosm_gates[6] = 350 / 4;
+    // emc_EC_cosm_gates[7] = 700;
+    // // ch 5
+    // emc_EC_cosm_gates[8] = 450 / 4;
+    // emc_EC_cosm_gates[9] = 800;
+    // // ch 6
+    // emc_EC_cosm_gates[10] = 500 / 4;
+    // emc_EC_cosm_gates[11] = 1000;
+    // // ch 7
+    // emc_EC_cosm_gates[12] = 450 / 4;
+    // emc_EC_cosm_gates[13] = 1000;
+    // // ch 8
+    // emc_EC_cosm_gates[14] = 350 / 4;
+    // emc_EC_cosm_gates[15] = 800;
+    // // ch 9
+    // emc_EC_cosm_gates[16] = 500 / 4;
+    // emc_EC_cosm_gates[17] = 1000;
 
     //===================================================================
     // Main loop
     //
     // EMC calibrated event
-    float emc_energy_C[emc_matrix_size];
-    double emc_time_C[emc_matrix_size];
-    int emc_N_hits[emc_matrix_size];
-    int emc_N_trig[emc_matrix_size];
+    // float emc_energy_C[emc_matrix_size];
+    // double emc_time_C[emc_matrix_size];
+    // int emc_N_hits[emc_matrix_size];
+    // int emc_N_trig[emc_matrix_size];
     //---------
     //
     TRandom rnd;
@@ -312,21 +309,21 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
     std::vector<Double_t> vec_Stage_leadtime;
     std::vector<Double_t> vec_Stage_trailtime;
 
-    TFile* Ttree = new TFile("Stage1.root", "RECREATE");
-    TTree* Stage1 = new TTree("Stage1", "Stage1");
+    TFile* Ttree = new TFile("PDAQ_Cal.root", "RECREATE");
+    TTree* PDAQ_Cal = new TTree("PDAQ_Cal", "PDAQ_Cal");
 
-    Stage1->Branch("vec_Stage_DT", &vec_Stage_DT);
-    Stage1->Branch("vec_Stage_layer", &vec_Stage_layer);
-    Stage1->Branch("vec_Stage_x", &vec_Stage_x);
-    Stage1->Branch("vec_Stage_y", &vec_Stage_y);
-    Stage1->Branch("vec_Stage_z", &vec_Stage_z);
-    Stage1->Branch("vec_Stage_module", &vec_Stage_module);
-    Stage1->Branch("vec_Stage_fee", &vec_Stage_fee);
-    Stage1->Branch("vec_Stage_fee_ch", &vec_Stage_fee_ch);
-    Stage1->Branch("vec_Stage_cell", &vec_Stage_cell);
-    Stage1->Branch("vec_Stage_tdc_ch", &vec_Stage_tdc_ch);
-    Stage1->Branch("vec_Stage_leadtime", &vec_Stage_leadtime);
-    Stage1->Branch("vec_Stage_trailtime", &vec_Stage_trailtime);
+    PDAQ_Cal->Branch("vec_Stage_DT", &vec_Stage_DT);
+    PDAQ_Cal->Branch("vec_Stage_layer", &vec_Stage_layer);
+    PDAQ_Cal->Branch("vec_Stage_x", &vec_Stage_x);
+    PDAQ_Cal->Branch("vec_Stage_y", &vec_Stage_y);
+    PDAQ_Cal->Branch("vec_Stage_z", &vec_Stage_z);
+    PDAQ_Cal->Branch("vec_Stage_module", &vec_Stage_module);
+    PDAQ_Cal->Branch("vec_Stage_fee", &vec_Stage_fee);
+    PDAQ_Cal->Branch("vec_Stage_fee_ch", &vec_Stage_fee_ch);
+    PDAQ_Cal->Branch("vec_Stage_cell", &vec_Stage_cell);
+    PDAQ_Cal->Branch("vec_Stage_tdc_ch", &vec_Stage_tdc_ch);
+    PDAQ_Cal->Branch("vec_Stage_leadtime", &vec_Stage_leadtime);
+    PDAQ_Cal->Branch("vec_Stage_trailtime", &vec_Stage_trailtime);
 
     Long_t global_cnt = 0;
     for (Long_t e = 0; e < nentries; e++)
@@ -343,7 +340,7 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
         // STT Pre Processing
         int hitsInEvent = 0;
 
-        bool emcCosmic = false;
+        //bool emcCosmic = false;
         bool sttCosmic = false;
         std::vector<SttHit*> vec_filterLeadTime;
 
@@ -352,7 +349,7 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
         std::vector<SttHit*> vec_L3;
         std::vector<SttHit*> vec_L4;
 
-        double emcTime = 0;
+        //double emcTime = 0;
         double a;
         double b;
         double a_err;
@@ -369,9 +366,9 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
             hitMultOnLayer[i] = 0;
         }
 
-        for (int i = 0; i < stt_events->totalNTDCHits; i++)
+        for (int i = 0; i < STT->stt_raw.totalNTDCHits; i++)
         {
-            SttHit* hit  = (SttHit*)stt_events->tdc_hits->ConstructedAt(i); // retrieve particular hit
+            SttHit* hit  = (SttHit*)STT->stt_raw.tdc_hits->ConstructedAt(i); // retrieve particular hit
 
             int tdc_num = hit->channel / 49;
             // hit on reference channel
@@ -545,234 +542,86 @@ void PDAQ_EMC_STT_cluster_analysis(char* intree, int maxEvents = 100000)
 
         } // end of if with 4 layers
 
-
-        // EMC Processing
-
-        //===================================================================
-        // general histograms
-        h_EMC_multiplicity_SB->Fill(emc_Hits_ADC_channel->size());
-        const int ref_time_ch = 1; // time reference for the LP event
-        int ref_time_ind = -1;
-        for (UInt_t h = 0; h < emc_Hits_ADC_channel->size(); h++)
-        {
-            h_EMC_ADC_channels_hits->Fill(emc_Hits_ADC_channel->at(h));
-            if (emc_Hits_ADC_channel->at(h) < emc_h_energy_size)
-                h_EMC_RawEnergy[emc_Hits_ADC_channel->at(h)]->Fill(emc_Hits_Energy->at(h));
-            if (emc_Hits_ADC_channel->at(h) == ref_time_ch)
-                ref_time_ind = h;
-        }
-        //
-
-        h_EMC_clusters_per_SB->Fill(emc_Cluster_N_hits->size());
-
-        UInt_t hi = 0;
-        for (UInt_t cl = 0; cl < emc_Cluster_N_hits->size(); cl++)
-        {
-            if (emc_Cluster_N_hits->at(cl) > 1
-                && hi + emc_Cluster_N_hits->at(cl) < emc_Hits_ADC_channel->size())
-            {
-                for (UInt_t h = hi; h < hi + emc_Cluster_N_hits->at(cl); h++)
-                {
-                    h_EMC_RawEnergy_CrCoinc[emc_Hits_ADC_channel->at(h)]->Fill(
-                        emc_Hits_Energy->at(h));
-                }
-            }
-            hi += emc_Cluster_N_hits->at(cl);
-        }
-        //===================================================================
-        // timing histograms
-        if (emc_Hits_ADC_channel->size() == emc_matrix_size * 2 && ref_time_ind > -1)
-        {
-            double ref_time = time_to_ns * emc_Hits_local_time->at(ref_time_ind);
-            for (UInt_t h = 0; h < emc_Hits_ADC_channel->size(); h++)
-                h_EMC_RawTime[emc_Hits_ADC_channel->at(h)]->Fill(
-                    time_to_ns * emc_Hits_local_time->at(h) - ref_time);
-        }
-
-        //===================================================================
-        // Making calibrated event
-        // loop over slusters
-        int ev_prn = 0;
-        hi = 0;
-
-        int true_multiplicity = 0;
-
-        for (UInt_t cl = 0; cl < emc_Cluster_N_hits->size(); cl++)
-        {
-
-            h_EMC_multiplicity_cl->Fill(emc_Cluster_N_hits->size());
-            // zero calibrated event
-            for (int i = 0; i < emc_matrix_size; i++)
-            {
-                emc_energy_C[i] = 0;
-                emc_time_C[i] = 0;
-                emc_N_hits[i] = 0;
-            }
-            // loop over hits in cluster
-            if (hi + emc_Cluster_N_hits->at(cl) <= emc_Hits_ADC_channel->size())
-            {
-                for (UInt_t h = hi; h < hi + emc_Cluster_N_hits->at(cl); h++)
-                {
-                    int ch = emc_Hits_ADC_channel->at(h) / 2;
-                    if (ch >= emc_adc_chan_ofset)
-                        ch -= emc_adc_chan_ofset;
-                    //
-                    emc_energy_C[ch] += emc_Hits_Energy->at(h) + rnd.Uniform(1);
-                    emc_time_C[ch] += time_to_ns * emc_Hits_local_time->at(h);
-                    emc_N_hits[ch] += 1;
-                }
-
-                true_multiplicity = 0;
-                for (int i = 0; i < emc_matrix_size; i++)
-                    if (emc_N_hits[i] > 1)
-                    {
-                        emc_energy_C[i] /= emc_N_hits[i];
-                        emc_time_C[i] /= emc_N_hits[i];
-                        h_EMC_EnergyC[i]->Fill(emc_energy_C[i]);
-                        true_multiplicity++;
-                    }
-
-                    else
-                    {
-                        emc_energy_C[i] = 0;
-                        emc_time_C[i] = 0.0;
-                    }
-
-
-                h_EMC_trueMultiplicity->Fill(true_multiplicity);
-
-                emcCosmic = false;
-
-                if (true_multiplicity > 1)
-                { // cosmick track or LP event
-
-                    for (int i = 0; i < emc_matrix_size; i++)
-                    {
-
-                        if (emc_energy_C[i] > 1)
-                        {
-
-                            h_EMC_EnergyC_track[i]->Fill(emc_energy_C[i]);
-
-                            if (emc_energy_C[i] > emc_EC_cosm_gates[i * 2]
-                                && emc_energy_C[i] < emc_EC_cosm_gates[i * 2 + 1])
-                            {
-
-                                for (int j = i + 1; j < emc_matrix_size; j++)
-                                {
-
-                                    if (emc_energy_C[i] > 1
-                                        && emc_energy_C[j] > emc_EC_cosm_gates[j * 2]
-                                        && emc_energy_C[j] < emc_EC_cosm_gates[j * 2 + 1])
-                                    {
-                                        h_EMC_dT_Cgated->Fill(emc_time_C[i] - emc_time_C[j]);
-
-                                        emcTime = (emc_time_C[i] + emc_time_C[j]) / 2.0;
-
-
-                                        // combine EMC with STT
-                                        emcCosmic = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-                printf("Error: # of cluster mismatch!\n");
-            
-            hi += emc_Cluster_N_hits->at(cl);
+        for (int f =0; f< vec_filterLeadTime.size(); f++)
+         {
 
             char buff[10000];
-            if (sttCosmic == true && emcCosmic == true)
-            {
-                printf("Cosmic found in both subsystems in event nr:%d\n", e);
-
-                int local_cnt = 0;
-                for (int i = 0; i < stt_events->totalNTDCHits; i++)
+            if (sttCosmic == true)
                 {
-                    SttHit* hit  = (SttHit*)stt_events->tdc_hits->ConstructedAt(i); // retrieve particular hit
-                    if (hit->isRef) continue;
+                    printf("Cosmic found in both subsystems in event nr:%d\n", e);
 
-                    sprintf(buff, "[%d / %d]  cell,l,m,c,cf=%d,%d,%d,%2d,%2d    x,y,z=%.3f,%.3f,%.3f  lt=%f   dt=%f\n",
-                       global_cnt, local_cnt,
-                       hit->cell, hit->layer, hit->module, hit->channel, hit->fee_channel,
-                       hit->x, hit->y, hit->z,
-                       hit->leadTime, hit->drifttime);
-                    printf(buff);
-                    fprintf(fp, buff);
-                    ++local_cnt;
+                    int local_cnt = 0;
+                    // for (int i = 0; i < stt_events->totalNTDCHits; i++)
+                    // {
+                    //     SttHit* hit  = (SttHit*)stt_events->stt_raw->tdc_hits->ConstructedAt(i); // retrieve particular hit
+                    //     if (hit->isRef) continue;
+
+                    //     sprintf(buff, "[%d / %d]  cell,l,m,c,cf=%d,%d,%d,%2d,%2d    x,y,z=%.3f,%.3f,%.3f  lt=%f   dt=%f\n",
+                    //        global_cnt, local_cnt,
+                    //        hit->cell, hit->layer, hit->module, hit->channel, hit->fee_channel,
+                    //        hit->x, hit->y, hit->z,
+                    //        hit->leadTime, hit->drifttime);
+                    //     printf(buff);
+                    //     fprintf(fp, buff);
+                    //     ++local_cnt;
+                    // }
+                    // ++global_cnt;
+
+
+                    h_STT_counts->Fill(4);
+
+                    double meanTime = 0;
+                    int crystalMult = 0;
+                    double delT = 0;
+                    int dl1 = 220;
+                    int dl2 = 450;
+
+                    vec_Stage_DT.clear();
+                    vec_Stage_x.clear();
+                    vec_Stage_y.clear();
+                    vec_Stage_z.clear();
+                    vec_Stage_layer.clear();
+                    vec_Stage_module.clear();
+                    vec_Stage_fee.clear();
+                    vec_Stage_fee_ch.clear();
+                    vec_Stage_cell.clear();
+                    vec_Stage_tdc_ch.clear();
+                    vec_Stage_leadtime.clear();
+                    vec_Stage_trailtime.clear();
+
+                    for (int q = 0; q < vec_filterLeadTime.size(); q++)
+                    {
+                        
+                        vec_Stage_x.push_back(vec_filterLeadTime.at(q)->x);
+                        vec_Stage_y.push_back(vec_filterLeadTime.at(q)->y);
+                        vec_Stage_z.push_back(vec_filterLeadTime.at(q)->z);
+                        vec_Stage_layer.push_back(vec_filterLeadTime.at(q)->layer);
+                        vec_Stage_module.push_back(vec_filterLeadTime.at(q)->module);
+                        vec_Stage_fee.push_back(vec_filterLeadTime.at(q)->fee);
+                        vec_Stage_fee_ch.push_back(vec_filterLeadTime.at(q)->fee_channel);
+                        vec_Stage_tdc_ch.push_back(vec_filterLeadTime.at(q)->channel);
+                        vec_Stage_leadtime.push_back(vec_filterLeadTime.at(q)->leadTime);
+                        vec_Stage_trailtime.push_back(vec_filterLeadTime.at(q)->trailTime);
+                        vec_Stage_cell.push_back(vec_filterLeadTime.at(q)->cell);
+                      //  vec_Stage_DT.push_back((38400 - vec_filterLeadTime.at(q)->leadTime) - emcTime);
+
+                    }
+
+                        PDAQ_Cal->Fill();
                 }
-                ++global_cnt;
 
-
-                h_STT_EMC_cosmic->Fill(1);
-                h_STT_counts->Fill(4);
-
-                double meanTime = 0;
-                int crystalMult = 0;
-                double delT = 0;
-                int dl1 = 220;
-                int dl2 = 450;
-
-                vec_Stage_DT.clear();
-                vec_Stage_x.clear();
-                vec_Stage_y.clear();
-                vec_Stage_z.clear();
-                vec_Stage_layer.clear();
-                vec_Stage_module.clear();
-                vec_Stage_fee.clear();
-                vec_Stage_fee_ch.clear();
-                vec_Stage_cell.clear();
-                vec_Stage_tdc_ch.clear();
-                vec_Stage_leadtime.clear();
-                vec_Stage_trailtime.clear();
-
-                h_STT_EMC_trueMultiplicity->Fill(true_multiplicity);
-
-
-                for (int q = 0; q < vec_filterLeadTime.size(); q++)
-                {
-                    
-                    vec_Stage_x.push_back(vec_filterLeadTime.at(q)->x);
-                    vec_Stage_y.push_back(vec_filterLeadTime.at(q)->y);
-                    vec_Stage_z.push_back(vec_filterLeadTime.at(q)->z);
-                    vec_Stage_layer.push_back(vec_filterLeadTime.at(q)->layer);
-                    vec_Stage_module.push_back(vec_filterLeadTime.at(q)->module);
-                    vec_Stage_fee.push_back(vec_filterLeadTime.at(q)->fee);
-                    vec_Stage_fee_ch.push_back(vec_filterLeadTime.at(q)->fee_channel);
-                    vec_Stage_tdc_ch.push_back(vec_filterLeadTime.at(q)->channel);
-                    vec_Stage_leadtime.push_back(vec_filterLeadTime.at(q)->leadTime);
-                    vec_Stage_trailtime.push_back(vec_filterLeadTime.at(q)->trailTime);
-                    vec_Stage_cell.push_back(vec_filterLeadTime.at(q)->cell);
-                    vec_Stage_DT.push_back((38400 - vec_filterLeadTime.at(q)->leadTime) - emcTime);
-
-                }
-
-                Stage1->Fill();
-            }
-            else
-            {
-                h_STT_EMC_cosmic->Fill(0);
-            }
-
-/////////////////////////////////////////////////////////////END OF CLUSTER FILTER////////////////////////////////////////////////////////////
         } // end of the loop over clusters
 
-        if (emcCosmic == true)
-            h_emc_cosmic->Fill(2);
-
-        else if (sttCosmic == true)
+        if (sttCosmic == true)
             h_stt_cosmic->Fill(1);
 
     } // end of event loop.//////////////////////////////////////////////
  
-    Stage1->Write();
+    PDAQ_Cal->Write();
     cout << "Repeated entries  :"<< repeat<<"/"<<All_repeat<<endl;  
 
     if (fp)
         fclose(fp);
 }
 
-void PDAQ_EMC_STT_cluster_analysis() {}
+void PDAQ_Cal() {}

@@ -10,16 +10,38 @@
 #include <iostream>
 #include <cstdlib>
 
+#include <TBranch.h>
+#include <TBranchElement.h>
+
 #include "SttEvent.h"
+#include "EmcEvent.h"
+
 #include "SttDetector.h"
 
+#include "panda_subsystem.h"
+#include "panda_subsystem_stt.h"
+#include "panda_subsystem_sb.h"
+#include "panda_subsystem_emc.h"
+
 #ifdef __MAKECINT__
+
 #pragma link C++ class vector<UInt_t>+;
 #pragma link C++ class vector<Int_t>+;
 #pragma link C++ class vector<UShort_t>+;
 #pragma link C++ class vector<UChar_t>+;
-#pragma link C++ class SttEvent+;
+
 #pragma link C++ class SttHit+;
+#pragma link C++ class SttEvent+;
+#pragma link C++ class SttRawHit+;
+
+#pragma link C++ class EmcHit+;
+#pragma link C++ class EmcEvent+;
+
+
+#pragma link C++ class PandaSubsystem+;
+#pragma link C++ class PandaSubsystemSTT+;
+#pragma link C++ class PandaSubsystemSB+;
+#pragma link C++ class PandaSubsystemEMC+;
 #endif
 
 //===================================================================
@@ -71,6 +93,11 @@ std::vector<SttEvent> stt_tdc_hits;
 
 SttDetector stt_det;
 
+
+//-------------------------------------------------------------------
+PandaSubsystemSB* sb = new PandaSubsystemSB();
+PandaSubsystemSTT* stt = new PandaSubsystemSTT();
+PandaSubsystemEMC* emc = new PandaSubsystemEMC();
 
 //===================================================================
 // Zero event
@@ -204,7 +231,9 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
     //---------------------------------------------------------------
 
 
-	SttEvent* stt_event = new SttEvent();
+	SttEvent* stt_event = &(stt->stt_raw);
+
+	EmcEvent* emc_event = &(emc->emc_raw);
 
     // Open output file
     bool use_tree_output = false;
@@ -214,27 +243,13 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
 	use_tree_output = true;
 	//
 	ofile = new TFile(out_file_name,"recreate");
-	tree = new TTree("PDAQ_Events","PDAQ_Events");
+	tree = new TTree("PDAQ_EMC_STT_cluster_analysis","PDAQ_EMC_STT_cluster_analysis");
 	//.......................
-	// Header variables
-	tree->Branch("Header_status",&Header_status,"Header_status/s");
-	tree->Branch("SB_number",&SB_number,"SB_number/i");
-	//
-	// EMC data
-	tree->Branch("emc_Cluster_local_time",&emc_Cluster_local_time);
-	tree->Branch("emc_Cluster_diameter",&emc_Cluster_diameter);
-	tree->Branch("emc_Cluster_2x",&emc_Cluster_2x);
-	tree->Branch("emc_Cluster_2y",&emc_Cluster_2y);
-	tree->Branch("emc_Cluster_N_hits",&emc_Cluster_N_hits);
-	//
-	tree->Branch("emc_Hits_local_time",&emc_Hits_local_time);
-	tree->Branch("emc_Hits_status",&emc_Hits_status);
-	tree->Branch("emc_Hits_ADC_channel",&emc_Hits_ADC_channel);
-	tree->Branch("emc_Hits_Energy",&emc_Hits_Energy);
+
 	//.......................
-	// STT data
-	tree->Branch("stt_events", "SttEvent", &stt_event, 64000, 2);
-	tree->Branch("stt_tdc_event_sizes", &stt_tdc_event_sizes);
+	tree->Branch("SB", "PandaSubsystemSB", &sb, 64000, 2);
+	tree->Branch("STT", "PandaSubsystemSTT", &stt, 64000, 99);
+	tree->Branch("EMC", "PandaSubsystemEMC", &emc, 64000, 99);
     }
     //---------------------------------------------------------------
     UInt_t data4;
@@ -251,6 +266,8 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
 
 	// initialize stt data
 
+	// HAS TO BE TAKEN OUT////////////////////////////////
+
 	stt_channel_offsets[0xe100] = 0 * 49;
 	stt_channel_offsets[0xe101] = 1 * 49;
 	stt_channel_offsets[0xe102] = 2 * 49;
@@ -258,7 +275,6 @@ void PDAQ_RawDecoder_EMC_STT(char *in_file_name,char *out_file_name=0){
 	stt_channel_offsets[0xe201] = 4 * 49;
 	stt_channel_offsets[0xe202] = 5 * 49;
 	stt_channel_offsets[0xe203] = 6 * 49;
-
 
     //
     bool new_event=false;
@@ -301,6 +317,9 @@ double emc_pulser_time = 0;
 	n_bytes += 4;
 	t_Header_system_id = data4 & 0xffff;
 	t_Header_status = data4 >> 16;
+
+	sb->Header_Status = data4 >> 16;
+
 	//
 	// Word 4
 	in_file.read((char*)&data4,4);
@@ -320,9 +339,14 @@ double emc_pulser_time = 0;
 		// Rounding off previous event
 		pd_Event_Processor();
 		if(use_tree_output) {
+
+			sb->SB_number = Event_SB_number;
+
+
 			tree->Fill();
 
 			stt_event->Clear();
+			emc_event->Clear();
 
 //printf("------\n");
 		}
@@ -367,19 +391,30 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 	        // Header, w1
 	        in_file.read((char*)&data4,4);
 	        n_bytes += 4;
-	        emc_Cluster_local_time.push_back(data4 >> 8); 
 
-//printf("cluster time %f\n", (data4 >> 8) * (12.5 / 2048));
-//emc_pulser_time = ((data4 >> 8) * (12.5 / 2048));
+	         emc_Cluster_local_time.push_back(data4 >> 8);
+	         emc_Cluster_diameter.push_back(data4 & 0xff);
 
-	        emc_Cluster_diameter.push_back(data4 & 0xff);
+			EmcHit* q = emc_event->AddParm();
+
+			q->emc_Cluster_local_time = (data4 >> 8);
+			q->emc_Cluster_diameter = (data4 & 0xff);
+
+
 	        // Header, w2
 	        in_file.read((char*)&data4,4);
 	        n_bytes += 4;
+
 	        emc_Cluster_N_hits.push_back(data4 & 0x3ff);
 	        emc_Cluster_2x.push_back((data4 >> 10) & 0x3ff); 
 	        emc_Cluster_2y.push_back((data4 >> 20) & 0x3ff);
-		UInt_t emc_N_clusters = emc_Cluster_2y.size()-1;
+
+	        q->emc_Cluster_N_hits = (data4 & 0x3ff);
+			q->emc_Cluster_2x = ((data4 >> 10) & 0x3ff);
+			q->emc_Cluster_2y = ((data4 >> 20) & 0x3ff);
+
+
+			UInt_t emc_N_clusters = emc_Cluster_2y.size()-1;
 	        emc_Cluster_2y[emc_N_clusters] = (emc_Cluster_2y[emc_N_clusters] << 3) || (data4 >> 30);
 	        //
 	        //--------
@@ -388,15 +423,26 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 	            for(Int_t h_index=0;h_index< emc_Cluster_N_hits[emc_N_clusters];h_index++){
 		        //emc_Hits_cluster_index.push_back(emc_N_clusters);
 		        // Hit, w1
+	        EmcHit* e = emc_event->AddHit();
+
 		        in_file.read((char*)&data4,4);
 		        n_bytes += 4;
-		        emc_Hits_local_time.push_back(data4 >> 8);
-		        emc_Hits_status.push_back(data4 & 0xff);
+		         emc_Hits_local_time.push_back(data4 >> 8);
+		         emc_Hits_status.push_back(data4 & 0xff);
 		        // Hit, w2
+			e->emc_Hits_local_time = (data4 >> 8);
+			e->emc_Hits_status = (data4 & 0xff);
+
+		     
+
 		        in_file.read((char*)&data4,4);
 		        n_bytes += 4;
 			emc_Hits_ADC_channel.push_back(data4 >> 16);
-		        emc_Hits_Energy.push_back(data4 & 0xffff);
+		    emc_Hits_Energy.push_back(data4 & 0xffff);
+			e->emc_Hits_ADC_channel = (data4 >> 16);
+			e->emc_Hits_Energy = (data4 & 0xffff);
+
+
 		    }
 		else std::cerr << "Wrong packet length !!!" << std::endl;
 	    }
@@ -421,13 +467,6 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 		double refTime = 0;
 
 		double lastRise = 0;
-
-
-		double x_offset = 13.105;
-		double y2_offset = 71.705;
-		double y4_offset = 55.305;
-		double mod_width = 8.08;
-		double ss = 0.505;
 
 		UInt_t sub[2048];
 
@@ -484,7 +523,8 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 
 				stt_tdc_event_sizes.push_back(tdc_size);
 				h_stt_tdc_event_sizes->Fill(tdc_size);
-
+				// SttHit* v = stt_event->event_size(tdc_size);
+				// 		v->stt_tdc_event_sizes = tdc_size;
 				lastRise = 0;
 			}
 			else if (find_hits == false) {
@@ -507,7 +547,8 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 							refTime = time;
 
 
-							SttHit* a = stt_event->AddHit(channel_nr + stt_channel_offsets[tdc_id]);
+							SttRawHit* a = stt_event->AddHit(channel_nr + stt_channel_offsets[tdc_id]);
+							//SttHit* a = stt->stt_raw.AddHit(channel_nr + stt_channel_offsets[tdc_id]);
 							a->leadTime = time;
 							a->trailTime = 0;
 							a->isRef = true;
@@ -535,8 +576,8 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 
 							for ( Int_t ui=0; ui<stt_event->totalNTDCHits; ui++)
 							{
-								if ( ((SttHit*)stt_event->tdc_hits->ConstructedAt(ui))->channel == channel_nr + stt_channel_offsets[tdc_id]) {
-									if ( ((SttHit*)stt_event->tdc_hits->ConstructedAt(ui))->leadTime == lastRise) {
+								if ( ((SttRawHit*)stt_event->tdc_hits->ConstructedAt(ui))->channel == channel_nr + stt_channel_offsets[tdc_id]) {
+									if ( ((SttRawHit*)stt_event->tdc_hits->ConstructedAt(ui))->leadTime == lastRise) {
 										//cout<<"Double hit :"<<endl;
 										doubleHit = true;
 										doubleCntr++;
@@ -550,81 +591,15 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 									//cout<<channel_nr+stt_channel_offsets[tdc_id]<<endl;
 				if (doubleHit == false) 
 				{
-									SttHit* a = stt_event->AddHit(channel_nr + stt_channel_offsets[tdc_id]);
+									SttRawHit* a = stt_event->AddHit(channel_nr + stt_channel_offsets[tdc_id]);
 									a->leadTime = lastRise;
-									a->trailTime = refTime - time;
-									a->tot = a->leadTime - a->trailTime;
+									a->trailTime = (refTime - time);
+									a->tot = (a->leadTime - a->trailTime);
 									a->isRef = false;
 
 									detLoc l = stt_det.GetDetectorLocFromTDCChannel(channel_nr + stt_channel_offsets[tdc_id]);
 
-									a->layer = l.layer;
-									a->module = l.module;
-									a->fee = l.fee;
-									a->fee_channel = l.channel_no;
-									a->cell = (32 * (l.module -1)) + (16 * (l.fee -1)) + (16-(l.channel_no-1));
-
-									//cout << a->cell << endl;
-
-										if (a->layer ==1){
-											a->x = x_offset + ((a->module-1) * mod_width) + (a->fee * mod_width) - a->fee_channel*ss;
-											a->y = 0;
-
-												if (a->fee_channel%2==0){
-													a->z = 1.01;
-												}
-
-												else {
-													  a->z = 0;
-												}
-
-										}
-
-
-										else if ( a->layer ==2){
-											a->y = y2_offset + ((a->module-1) * mod_width) + (a->fee * mod_width) - a->fee_channel*ss;
-											a->x = 0;
-
-											if (a->fee_channel%2==0){
-												a->z = 12.0;
-											}
-
-											else {
-												  a->z = 13.01;
-											}
-
-										}
-
-
-										else if (a->layer ==3){
-											a->x = x_offset + ((a->module-1) * mod_width) + (a->fee * mod_width) - a->fee_channel*ss;
-											a->y = 0;
-
-												if (a->fee_channel%2==0){
-													a->z = 28.51;
-												}
-
-												else {
-													  a->z = 27.5;
-												}
-										}
-
-										else if ( a->layer ==4){
-											a->y = y4_offset + ((a->module-1) * mod_width) + (a->fee * mod_width) - a->fee_channel*ss;
-											a->x = 0;
-
-											if (a->fee_channel%2==0){
-												a->z = 39.59;
-											}
-
-											else {
-												  a->z = 40.61;
-											}
-
-										}
-
-					//printf("hit R: %f F: %f on channel %d\n", a->leadTime, a->trailTime, channel_nr + stt_channel_offsets[tdc_id]);
-					//printf("det_loc: %d %d %d %d \n", l.layer, l.module, l.fee, l.channel_no);
+									cout<<"CHECK  : "<<a->leadTime<<"\t"<<a->trailTime<<endl;
 
 								}
 							}
@@ -632,6 +607,8 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 
 					}
 				}
+
+
 
 					else if (((sub[i] >> 28) & 0xf) == 0x6) {  // epoch counter
 						epoch = sub[i] & 0xffffff;
@@ -650,17 +627,15 @@ if (N_events % 10000 == 0) printf("%d\n", N_events);
 		}
 
 
-	} 
-	else 
-	{ 
-	// skip data
-	    while(n_bytes < Data_size)
-	    {
+	} else { // skip data
+	    while(n_bytes < Data_size){
 	        // Header, w1
 	        in_file.read((char*)&data4,4);
 	        n_bytes += 4;
 	    }
 	}
+
+
 
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     }

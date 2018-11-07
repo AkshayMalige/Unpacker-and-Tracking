@@ -1,27 +1,27 @@
-#include "SttEvent.h"
+#include "Stt_Cal_Event.h"
 
-ClassImp(SttEvent)
+ClassImp(Stt_Cal_Event)
 
-SttEvent::SttEvent() {
-	tdc_hits = new TClonesArray("SttRawHit", 1000);
+Stt_Cal_Event::Stt_Cal_Event() {
+	tdc_cal_hits = new TClonesArray("SttHit", 1000);
 	//tdc_events = new TClonesArray("SttHit", 1000);
 	//tdc_raw = new TClonesArray("SttRawHit", 1000);
 
 
 
-	totalNTDCHits = 0;
+	total_cal_NTDCHits = 0;
 	//totalNTDCEvents = 0;
 	//rawNTDCEvents =0;
 
 
 }
 
-SttRawHit* SttEvent::AddHit(int channel) {
-	TClonesArray& thits = *tdc_hits;
-	SttRawHit* hit = new (thits[totalNTDCHits++]) SttRawHit();
-	hit->SetChannel(channel);
+SttHit* Stt_Cal_Event::AddCalHit(int channel) {
+	TClonesArray& thits = *tdc_cal_hits;
+	SttHit* cal_hit = new (thits[total_cal_NTDCHits++]) SttHit();
+	cal_hit->SetChannel(channel);
 
-	return hit;
+	return cal_hit;
 }
 
 // SttHit* SttEvent::event_size(int stt_tdc_event_sizes) {
@@ -40,8 +40,8 @@ SttRawHit* SttEvent::AddHit(int channel) {
 // 	return trawevents;
 // }
 
-void SttEvent::Clear(void) {
-	tdc_hits->Clear("C");
+void Stt_Cal_Event::CalClear(void) {
+	tdc_cal_hits->Clear("C");
 
 
 	//tdc_events->Clear("C");
@@ -50,7 +50,7 @@ void SttEvent::Clear(void) {
 //	delete tdc_hits;
 //	tdc_hits = new TClonesArray("SttHit", 1000);
 
-	totalNTDCHits = 0;
+	total_cal_NTDCHits = 0;
 	//totalNTDCEvents = 0;
 	//rawNTDCEvents = 0;
 

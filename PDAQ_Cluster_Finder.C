@@ -15,11 +15,39 @@
 #include <cstdlib>
 #include <TLinearFitter.h>
 
+#include "SttRawHit.h"
 #include "SttHit.h"
 #include "SttEvent.h"
-#include "cluster.h"
-                           
+#include "SttTrackEvent.h"
+
+                          
+#include "panda_subsystem.h"
+#include "panda_subsystem_stt.h"
+#include "panda_subsystem_sb.h"
+#include "panda_stt_cal.h"
+#include "panda_stt_track.h"
+
+#pragma link C++ class SttRawHit+;
+#pragma link C++ class SttHit+;
+#pragma link C++ class SttEvent+;
+#pragma link C++ class Stt_Track_Event+;
+
+#pragma link C++ class PandaSubsystem+;
+#pragma link C++ class PandaSubsystemSTT+;
+#pragma link C++ class PandaSubsystemSB+;
+#pragma link C++ class PandaSttCal+;
+#pragma link C++ class PandaSttTrack+;
+
+
+
 using namespace std;
+
+
+bool f_sttHitCompareLeadTime(SttHit* a, SttHit* b)
+{
+    return (a->leadTime < b->leadTime);
+}
+
 
 bool f_sttHitCompareCell(SttHit* a, SttHit* b)
 {
@@ -132,32 +160,34 @@ std::vector<SttHit*>  GetPairs(std::vector<SttHit*> vec_get_pairs)
 Bool_t PDAQ_Cluster_Finder(void)
 {
 
-    TFile file("Stage1.root", "READ");
-    TTree* tree = (TTree*)file.Get("Stage1");
+// PandaSttCal* CAL = new PandaSttCal();
+
+// SttEvent* stt_event = &(CAL->stt_cal);
+
+PandaSubsystemSTT* STT_RAW = 0;
+PandaSubsystemSTT* CAL = 0;
+
+//PandaSttCal* STT = 0;
+
+
+PandaSttCal* STT_CAL = new PandaSttCal();
+
+
+
+PandaSttTrack* STT_TRACKS = new PandaSttTrack();
+Stt_Track_Event* stt_event = &(STT_TRACKS->stt_track_can);
+
+
+    TFile file("PDAQ_Stt.root", "READ");
+    TTree* tree = (TTree*)file.Get("PDAQ_EMC_STT_cluster_analysis");
     if (!tree) {
         std::cerr << "Tree doesn't exists" << std::endl;
         return 1;
     }
     tree->Print();
 
-    // TFile* Stage2 = new TFile("Stage2.root", "RECREATE");
 
-
-    std::vector<double>* vec_Stage_DT = 0;
-    std::vector<double>* vec_Stage_x = 0;
-    std::vector<double>* vec_Stage_y = 0;
-    std::vector<double>* vec_Stage_z = 0;
-    std::vector<double>* vec_Stage_layer = 0;
-    std::vector<double>* vec_Stage_module = 0;
-    std::vector<double>* vec_Stage_fee = 0;
-    std::vector<double>* vec_Stage_cell = 0;
-    std::vector<double>* vec_Stage_fee_ch = 0;
-    std::vector<double>* vec_Stage_tdc_ch = 0;
-    std::vector<double>* vec_Stage_leadtime = 0;
-    std::vector<double>* vec_Stage_trailtime = 0;
-    
-    std::vector<SttHit*> vec_stthits;
-    std::vector<SttHit*> vec_Allhits;
+    std::vector<Double_t> vec_event;
 
     std::vector<Double_t> vec_test;
     std::vector<Double_t> vec_driftTime;
@@ -167,47 +197,17 @@ Bool_t PDAQ_Cluster_Finder(void)
     std::vector<Double_t> vec_cumsum;
     std::vector<Double_t> vec_drift_radius;
 
+    std::vector<SttHit*> vec_All_tracks;
 
-    std::vector<Double_t> vec_x;
-    std::vector<Double_t> vec_y;
-    std::vector<Double_t> vec_z;
-    std::vector<Double_t> vec_layer;
-    std::vector<Double_t> vec_module;
-    std::vector<Double_t> vec_fee;
-    std::vector<Double_t> vec_cell;
-    std::vector<Double_t> vec_fee_ch;
-    std::vector<Double_t> vec_tdc_ch;
+    tree->SetBranchAddress("STT_CAL", &STT_CAL);
+    tree->SetBranchAddress("STT_RAW", &STT_RAW);
 
-    std::vector<SttHit*> vec_Track_obj;
+    TFile* Ttree = new TFile("PDAQ_Stt.root", "UPDATE");
+     TTree* PDAQ_EMC_STT_cluster_analysis =  new TTree("PDAQ_EMC_STT_cluster_analysis", "PDAQ_EMC_STT_cluster_analysis");
 
-
-    TFile* Ttree = new TFile("Drift_Radius_test.root", "RECREATE");
-    TTree* DR_Tree = new TTree("DR_Tree", "DR_Tree");
-
-    DR_Tree->Branch("vec_driftTime", &vec_driftTime);
-    DR_Tree->Branch("vec_layer", &vec_layer);
-    DR_Tree->Branch("vec_x", &vec_x);
-    DR_Tree->Branch("vec_y", &vec_y);
-    DR_Tree->Branch("vec_z", &vec_z);
-    DR_Tree->Branch("vec_module", &vec_module);
-    DR_Tree->Branch("vec_fee", &vec_fee);
-    DR_Tree->Branch("vec_fee_ch", &vec_fee_ch);
-    DR_Tree->Branch("vec_cell", &vec_cell);
-    DR_Tree->Branch("vec_tdc_ch", &vec_tdc_ch);
-
-
-    tree->SetBranchAddress("vec_Stage_DT", &vec_Stage_DT);
-    tree->SetBranchAddress("vec_Stage_x", &vec_Stage_x);
-    tree->SetBranchAddress("vec_Stage_y", &vec_Stage_y);
-    tree->SetBranchAddress("vec_Stage_z", &vec_Stage_z);
-    tree->SetBranchAddress("vec_Stage_layer", &vec_Stage_layer);
-    tree->SetBranchAddress("vec_Stage_module", &vec_Stage_module);
-    tree->SetBranchAddress("vec_Stage_fee", &vec_Stage_fee);
-    tree->SetBranchAddress("vec_Stage_cell", &vec_Stage_cell);
-    tree->SetBranchAddress("vec_Stage_fee_ch", &vec_Stage_fee_ch);
-    tree->SetBranchAddress("vec_Stage_tdc_ch", &vec_Stage_tdc_ch);
-    tree->SetBranchAddress("vec_Stage_leadtime", &vec_Stage_leadtime);
-    tree->SetBranchAddress("vec_Stage_trailtime", &vec_Stage_trailtime);
+    //PDAQ_EMC_STT_cluster_analysis->Branch("STT_RAW", "PandaSubsystemSTT", &STT_RAW, 64000, 99);
+    //PDAQ_EMC_STT_cluster_analysis->Branch("STT_CAL", "PandaSttCal", &STT_CAL, 64000, 99);
+    PDAQ_EMC_STT_cluster_analysis->Branch("STT_TRACKS", "PandaSttTrack", &STT_TRACKS, 64000, 99);
 
     TH1F* h_STT_EMC_td1 = new TH1F("h_STT_EMC_td1", "h_STT_EMC_td1", 1000, 0, 1000);
     TH1F* h_STT_EMC_td2 = new TH1F("h_STT_EMC_td2", "h_STT_EMC_td2", 1000, 0, 1000);
@@ -220,61 +220,166 @@ Bool_t PDAQ_Cluster_Finder(void)
     TH2F* h_Straw_DriftTime = new TH2F("h_Straw_DriftTime", "h_Straw_DriftTime", 296, 0, 296, 700, 0, 700);
     TH2F* h_Fee_DriftTime = new TH2F("h_Fee_DriftTime", "h_Fee_DriftTime", 16, 0, 16, 700, 0, 700);
 
-    TH1F* h_straw_mean_straw = new TH1F("h_straw_mean_straw", "h_straw_mean_straw", 6000, -1000, 7000);
+    TH1F* h_straw_mean_straw = new TH1F("h_straw_mean_straw", "h_straw_mean_straw", 800, -100, 700);
 
-    TH1F* h_Front = new TH1F("h_Front", "h_Front", 600, 100, 700);    
+    TH1F* h_Front = new TH1F("h_Front", "h_Front", 600, 0, 600);    
     TH1F* h_FrontNO = new TH1F("h_FrontNO", "h_FrontNO", 20, 0, 20);    
 
     TH1F* h_Fee[18];
 
-    for (int i = 0; i < 18; i++) 
+    Double_t repeat =0;
+    Double_t All_repeat =0;
+
+    for (int f = 0; f < 18; f++) 
     {
-        h_Fee[i] = new TH1F(TString::Format("h_Fee%i", i), "h_Fee", 600, 100, 700);
+        h_Fee[f] = new TH1F(TString::Format("h_Fee%f", f), "h_Fee", 600, 100, 700);
     }
 
     Int_t iev = (Int_t)tree->GetEntries();
     cout << "number of entries in tree:" << iev << endl
          << endl;
 
-    //loop over all the vectors in the tree.
+//loop over all the vectors in the tree.
+// sleep(5);
 
     for (Int_t i = 0; i < iev; i++) 
     {
         tree->GetEntry(i);
         cout << endl
              << endl;
-        cout << "entry no. " << i << endl;
-        Int_t oiv = vec_Stage_DT->size();
-        cout << "vecsize  :" << oiv << endl;
-        
-        vec_stthits.clear();
 
-    //std::sort(vec_Stage_cell->begin(), vec_Stage_cell->end());
+        std::vector<SttHit*> vec_stthits;
+
+
+        if (i%10000 ==0)
+        {
+            cout << "entry no. " << i << endl;
+        }
+
+        SttHit* hitOnLayer[4][500];
+        memset(hitOnLayer, 0, 4*500*sizeof(SttHit*));
+        int hitMultOnLayer[4];
+        
+        for (int h = 0; h < 4; h++)
+        {
+            hitMultOnLayer[h] = 0;
+        }
+
 
     //Loop over the vector elements//////////////////////////////////////////////////////
-        for (int n = 0; n < oiv; n++) 
+        for (int n = 0; n < STT_CAL->stt_cal.total_cal_NTDCHits; n++)
         {
-            SttHit* u = new SttHit();
 
-            u->x            = vec_Stage_x->at(n);
-            u->y            = vec_Stage_y->at(n);
-            u->z            = vec_Stage_z->at(n);
-            u->layer        = vec_Stage_layer->at(n);
-            u->module       = vec_Stage_module->at(n);
-            u->fee          = vec_Stage_fee->at(n);
-            u->fee_channel  = vec_Stage_fee_ch->at(n);
-            u->channel      = vec_Stage_tdc_ch->at(n);
-            u->leadTime     = vec_Stage_leadtime->at(n);
-            u->trailTime    = vec_Stage_trailtime->at(n);
-            u->cell         = vec_Stage_cell->at(n);
-            u->drifttime    = vec_Stage_DT->at(n);
+            SttHit* cal_hit  = (SttHit*)STT_CAL->stt_cal.tdc_cal_hits->ConstructedAt(n); // retrieve particular hit
 
-            vec_stthits.push_back(u);
-            vec_Allhits.push_back(u);
+
+            int tdc_num = cal_hit->channel / 49;
+            // hit on reference channel
+            if (cal_hit->isRef == true)
+            {
+                 //cout<<"Reference Hit  -> "<<cal_hit->isRef<<"\t"<<cal_hit->layer<<"\t"<<cal_hit->module<<"\t"<<cal_hit->fee_channel<<"\t"<<cal_hit->cell<<endl;
+            }
+            else
+            {
+
+                if (cal_hit->layer == 0)
+                {
+                    printf("ERROR: cal_hit->layer %d %d %d\n", cal_hit->layer, cal_hit->channel, cal_hit->fee);
+                    continue;
+                }
+
+                hitOnLayer[cal_hit->layer - 1][hitMultOnLayer[cal_hit->layer - 1]] = cal_hit;
+
+                hitMultOnLayer[cal_hit->layer - 1]++;
+            }
 
         }
 
-            double meanTime = 0;
+        bool good_layers = true;
+        for (int c = 0; c < 4; c++)
+        {
+            if (hitMultOnLayer[c] != 1)
+            {
+                 good_layers = false;
+                 break;
+            }
+        }
+        int layerCounter = 0;
+
+        for (int m = 0; m < 4; m++)
+        {
+            if (hitMultOnLayer[m] > 0)
+                layerCounter++;
+        }
+
+        if (layerCounter == 4)
+        {
+            std::vector<SttHit*> vec_leadTime;
+            int filtercnt = 0;
+            int fil_max = 250;
+
+            for (int l = 0; l < 4; l++)
+            {
+                for (int h = 0; h < hitMultOnLayer[l]; h++)
+
+                {
+                    vec_leadTime.push_back(hitOnLayer[l][h]);
+
+                }
+            }
+
+            for(Int_t je=0; je<vec_leadTime.size()-1;je++)
+            {
+
+
+                cout << "All entries  :  "<<vec_leadTime[je]->isRef<<"\t"<<" Lead Time : "<< vec_leadTime[je]->leadTime<<"\t" << " layer : "<< vec_leadTime[je]->layer<<"\t"<< "module : "<< vec_leadTime[je]->module<<"\t"<< " fee : "<< vec_leadTime[je]->fee<<"\t" << "FEE_Ch : "<< vec_leadTime[je]->fee_channel<<"\t"<<"Cell : "<<vec_leadTime[je]->cell<<endl;
+                if ((vec_leadTime[je+1]->leadTime) == (vec_leadTime[je]->leadTime) && (vec_leadTime[je+1]->channel == vec_leadTime[je]->channel))
+                {
+                    repeat++;
+                    //printf("{ LT,l,m,c,cf=%d,%d,%2d,%2d}{ LT1,l1,m1,c1,cf1=%d,%d,%2d,%2d}", vec_leadTime[je]->layer,vec_leadTime[je]->module,vec_leadTime[je]->fee,vec_leadTime[je]->fee_channel,vec_leadTime[je+1]->layer,vec_leadTime[je+1]->module,vec_leadTime[je+1]->fee,vec_leadTime[je+1]->fee_channel);
+                    //cout<<vec_leadTime[je]->isRef<<"\t"<<vec_leadTime[je]->leadTime<<"\t"<<vec_leadTime[je]->tot<<"\t"<<vec_leadTime[je+1]->leadTime<<" "<<vec_leadTime[je]->tot<<endl;    
+                 }
+                 All_repeat++;
+             }
+
+            std::sort(vec_leadTime.begin(), vec_leadTime.end(), f_sttHitCompareLeadTime);
+            vec_stthits.clear();
+
+
+            if (vec_leadTime.size() > 7)
+            {
+
+                for (int v = 0; v < vec_leadTime.size(); v++)
+                { // iterate over collected and sorted hits
+                    vec_stthits.clear();
+                    filtercnt = 1;
+
+                    SttHit* h = vec_leadTime.at(v);
+                    vec_stthits.push_back(h);
+
+
+                    for (int vv = 0; vv < vec_leadTime.size(); vv++)
+                    { // check each vs each if they fit into the window
+                        if (vv == v)    continue;
+                        if ((fabs(vec_leadTime[v]->leadTime - vec_leadTime[vv]->leadTime) < fil_max) )
+
+                        {
+                            SttHit* hh = vec_leadTime.at(vv);
+                            vec_stthits.push_back(hh);
+                            filtercnt++;
+                        }
+                        else
+                        { // in case the hit is outside the window break and start next iteration
+                            // with the next hit
+                            break;
+                            vec_stthits.clear();
+
+                        }
+                    }
+                }
+            }
+        
+            //double meanTime = 0;
             std::vector<SttHit*> vec_layer1;
             std::vector<SttHit*> vec_layer2;
             std::vector<SttHit*> vec_layer3;
@@ -287,42 +392,6 @@ Bool_t PDAQ_Cluster_Finder(void)
                 for (int w = 0; w < vec_stthits.size(); w++)
                 {
                     cout<<"["<<w<<"]"<<" L, M, C, F, Ch, T {"<<vec_stthits[w]->layer<<", "<<vec_stthits[w]->module<<", "<<vec_stthits[w]->cell<<", "<<vec_stthits[w]->fee<<", "<<vec_stthits[w]->fee_channel<<", "<<vec_stthits[w]->channel<<"}  "<<" X , Y , Z :{"<<vec_stthits[w]->x<<", "<<vec_stthits[w]->y<<", "<<vec_stthits[w]->z<<"}   "<<" LT DT  {"<<vec_stthits[w]->leadTime<<",  "<<vec_stthits[w]->drifttime<<"}"<<endl;
-                    if (vec_stthits[w]->layer == 1)
-                    {
-                        h_STT_EMC_td1->Fill(vec_stthits[w]->drifttime);
-                        h_XvsZ-> Fill(vec_stthits[w]->x,vec_stthits[w]->z);
-
-                    }
-                    else if (vec_stthits[w]->layer == 2)
-                    {
-                        h_STT_EMC_td2->Fill(vec_stthits[w]->drifttime);
-                        h_YvsZ-> Fill(vec_stthits[w]->y,vec_stthits[w]->z);
-
-                    }
-                    else if (vec_stthits[w]->layer == 3)
-                    {
-                        h_STT_EMC_td3->Fill(vec_stthits[w]->drifttime);
-                        h_XvsZ-> Fill(vec_stthits[w]->x,vec_stthits[w]->z);
-
-                    }
-                    else if (vec_stthits[w]->layer == 4)
-                    {
-                        h_STT_EMC_td4->Fill(vec_stthits[w]->drifttime);
-                        h_YvsZ-> Fill(vec_stthits[w]->y,vec_stthits[w]->z);
-
-                    }
-
-                    //drift time : STT-EMC
-
-                    h_STT_EMC_timeDiff->Fill(vec_stthits[w]->drifttime);
-
-
-                    meanTime += vec_stthits.at(w)->leadTime;
-
-                    if ((vec_stthits[w]->drifttime) >= 220
-                        && (vec_stthits[w]->drifttime) <= 450)
-
-                    {
 
                         if (vec_stthits.size()<40)
                         {
@@ -344,9 +413,6 @@ Bool_t PDAQ_Cluster_Finder(void)
                             }
 
                         }
-                    }
-
-
             }
 
             std::vector< vector<SttHit*>* >* vec_Cl_L1;
@@ -359,7 +425,13 @@ Bool_t PDAQ_Cluster_Finder(void)
             std::vector<double> vec_Chi2x;
             std::vector<double> vec_Chi2y;
 
+            std::vector<double> vec_P0;
+            std::vector<double> vec_P1;
+
+            std::vector<double> vec_PP0;
+            std::vector<double> vec_PP1;
 // FILTER TO GET ONLY HITS WITH A PAIR////////////////////////////////////////////////////////////
+
             std::vector<SttHit*> vec_pair_clu;
             vec_pair_clu.clear();
 
@@ -497,11 +569,14 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
                 chiX->Fit(f1);
                 chi_valueX = f1->GetChisquare();
                 vec_Chi2x.push_back(chi_valueX);
+
                 Double_t p0 = f1->GetParameter(0);
                 Double_t p1 = f1->GetParameter(1);
+
+                vec_P0.push_back(p0);
+                vec_P1.push_back(p1);
                 Double_t extrpX = ((65 - p0) / p1);
 
-                //vec_emcX.push_back(extrpX);
     
                 TGraph* chiY = new TGraph(vec_ClustersY.size(), clusterArrayY, clusterArrayZy);
                 chiY->Fit(f2,"QN");
@@ -509,10 +584,10 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
                 vec_Chi2y.push_back(chi_valueY);
                 Double_t pp0 = f2->GetParameter(0);
                 Double_t pp1 = f2->GetParameter(1);
+
+                vec_PP0.push_back(pp0);
+                vec_PP1.push_back(pp1);
                 Double_t extrpY = ((65 - pp0) / pp1);
-
-                //vec_emcY.push_back(extrpY);
-
                 Double_t sumChi = (chi_valueX + chi_valueY);
 
                 cout<<"X CHI :"<<chi_valueX<<"\t"<<"Y CHI"<<chi_valueY<<endl;
@@ -522,12 +597,15 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
         }
     }   
 
-}
+} 
 
     std::vector<SttHit*> vec_tracks;
     vec_tracks.clear();
 
     Float_t smallestX = vec_Chi2x[0];
+    Float_t smallestP0 = vec_P0[0];
+    Float_t smallestP1 = vec_P1[0];
+
     Int_t chi_indexX = 0;
 
     for (Int_t ci = 0; ci < vec_Chi2x.size(); ci++) 
@@ -539,9 +617,20 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
             smallestX = vec_Chi2x[ci];
             chi_indexX = ci;
         }
+        if (smallestP0 > vec_P0[ci]) 
+        {
+            smallestP0 = vec_P0[ci];
+        }
+        if (smallestP1 > vec_P1[ci]) 
+        {
+            smallestP1 = vec_P1[ci];
+        }
     }
 
     Float_t smallestY = vec_Chi2y[0];
+    Float_t smallestPP0 = vec_PP0[0];
+    Float_t smallestPP1 = vec_PP1[0];
+
     Int_t chi_indexY = 0;
 
     for (Int_t cj = 0; cj < vec_Chi2y.size(); cj++) 
@@ -553,254 +642,91 @@ for (Int_t xa=0; xa<vec_Cl_L1->size(); xa++)
             smallestY = vec_Chi2y[cj];
             chi_indexY = cj;
         }
+        if (smallestPP0 > vec_PP0[cj]) 
+        {
+            smallestPP0 = vec_PP0[cj];
+        }
+        if (smallestPP1 > vec_PP1[cj]) 
+        {
+            smallestPP1 = vec_PP1[cj];
+        }
     }
     cout<<"INDEX X:"<<chi_indexX<<"\t"<<"INDEX Y:"<<chi_indexY<<endl;
 
     for (Int_t ck = 0; ck < vec_All_X.at(chi_indexX).size(); ck++)
     {
-        cout<<"       BEST  X      "<< vec_All_X.at(chi_indexX).at(ck)->cell<<endl;
+        cout<<"       BEST  X      "<< vec_All_X.at(chi_indexX).at(ck)->cell<<"\t"<<smallestX<<endl;
         vec_tracks.push_back(vec_All_X.at(chi_indexX).at(ck));
     }
     for (Int_t cl = 0; cl < vec_All_Y.at(chi_indexY).size(); cl++)
     {
-        cout<<"       BEST  Y      "<< vec_All_Y.at(chi_indexY).at(cl)->cell<<endl;
+        cout<<"       BEST  Y      "<< vec_All_Y.at(chi_indexY).at(cl)->cell<<"\t"<<smallestY<<endl;
         vec_tracks.push_back(vec_All_Y.at(chi_indexY).at(cl));
     }
 
     Double_t sum_leadtime = 0.0;
     Double_t mean_leadtime = 0.0;
     vec_driftTime.clear();
-    vec_x.clear();
-    vec_y.clear();
-    vec_z.clear();
-    vec_layer.clear();
-    vec_module.clear();
-    vec_fee.clear();
-    vec_fee_ch.clear();
-    vec_cell.clear();
-    vec_tdc_ch.clear();
 
-//Write Tracks
 
-    for (Int_t tq=0; tq<vec_tracks.size(); tq++)
+    double sumLeadTime = 0;
+    double meanTime = 0;
+
+    for (Int_t d = 0; d<vec_tracks.size(); d++)
     {
-        cout<<"TRACKS  : "<<vec_tracks[tq]->layer<<"\t"<<vec_tracks[tq]->cell<<"\t"<<vec_tracks[tq]->channel<<endl;
-
-        vec_driftTime.push_back(vec_tracks[tq]->drifttime);
-        vec_x.push_back(vec_tracks[tq]->x);
-        vec_y.push_back(vec_tracks[tq]->y);
-        vec_z.push_back(vec_tracks[tq]->z);
-        vec_layer.push_back(vec_tracks[tq]->layer);
-        vec_module.push_back(vec_stthits[tq]->module);
-        vec_fee.push_back(vec_tracks[tq]->fee);
-        vec_fee_ch.push_back(vec_tracks[tq]->fee_channel);
-        vec_cell.push_back(vec_tracks[tq]->cell);
-        vec_tdc_ch.push_back(vec_tracks[tq]->channel);
-        vec_Track_obj.push_back(vec_tracks[tq]);
-
-        sum_leadtime += vec_tracks[tq]->leadTime;
+        sumLeadTime += vec_tracks.at(d)->leadTime;
 
      }
 
-    mean_leadtime = sum_leadtime/vec_tracks.size();
+     meanTime = sumLeadTime/vec_tracks.size();
+vec_event.push_back(i);
 
-    for ( Int_t tx =0; tx <vec_tracks.size(); tx++)
-       {
-         h_straw_mean_straw->Fill((vec_tracks[tx]->leadTime- mean_leadtime));
+//Write Tracks
+    stt_event->TrackClear();
 
-         }
+    SttTrackHit* b = stt_event->AddTrackHit();
+    b->vec_Track = vec_tracks;
+    b->trackId = i;
+    b->trackSize = vec_tracks.size();
+    b->Px0 = smallestP0;
+    b->Px1 = smallestP1;
+    b->Py0 = smallestPP0;
+    b->Py1 = smallestPP1;
+    b->Chix = smallestX;
+    b->Chiy = smallestY;
+
+
+    for (Int_t tq=0; tq<vec_tracks.size(); tq++)
+    {
+        cout<<"TRACKS  : "<<vec_tracks[tq]->layer<<"\t"<<vec_tracks[tq]->cell<<"\t"<<vec_tracks[tq]->channel<<"\t"<<vec_tracks[tq]->leadTime<<"\t"<<meanTime<<"\t"<<(fabs((vec_tracks[tq]->leadTime)-meanTime))<<endl;
+
+     }
+
 
     vec_Chi2x.clear();
     vec_Chi2y.clear();
 
-    DR_Tree->Fill();
+    vec_P0.clear();
+    vec_P1.clear();
 
-  }
+    vec_PP0.clear();
+    vec_PP1.clear();
 
-    std::vector<Int_t> vec_dr_channel;
-    std::vector<Int_t> vec_dr_correction;
-    Int_t ar_dr_channel[296];
-    Int_t ar_dr_correction[296];
+    PDAQ_EMC_STT_cluster_analysis->Fill();
 
-    for ( Int_t ef=0; ef< vec_Allhits.size(); ef++)
-    {
-        Int_t FrontEnd = ((4*(vec_Allhits[ef]->layer - 1))+(2*(vec_Allhits[ef]->module)-1)+((vec_Allhits[ef]->fee)-1));
-        h_Straw_DriftTime->Fill(vec_Allhits[ef]->channel,vec_Allhits[ef]->drifttime);
-        h_Fee_DriftTime->Fill(FrontEnd,vec_Allhits[ef]->drifttime);
-        h_Fee[FrontEnd]->Fill(vec_Allhits[ef]->drifttime);
-        h_FrontNO->Fill(FrontEnd);
-      }
+    }
 
-for (Int_t ch = 1; ch<17; ch++)
+  }//End of loop over events
+
+cout<<"CGECH THE SIZE   :"<<vec_All_tracks.size()<<endl;
+
+    PDAQ_EMC_STT_cluster_analysis->Write();
+for (int ko=0; ko<vec_event.size(); ko++)
 {
- for ( Int_t sq=0; sq< vec_Allhits.size(); sq++)
- {
-    if ((4*(vec_Allhits[sq]->layer - 1))+(2*(vec_Allhits[sq]->module)-1)+((vec_Allhits[sq]->fee)-1) == ch)
-    {
-        h_Front->Fill(vec_Allhits[sq]->drifttime);
-
-     }
-
-  }
-
-    Int_t maximum = h_Front->GetBinContent(h_Front->GetMaximumBin());
-    Int_t y_th = maximum/10;
-    Int_t gbinx = 100 + h_Front->FindFirstBinAbove(y_th,1);
-    cout<<"FrontEnd : "<<ch<<"| Y max : "<<maximum<<"|  threshold : "<<y_th<<"|  bin@th :"<<gbinx<<endl;
-    h_Front->Reset();
-
-    vec_dr_channel.push_back(ch);
-    vec_dr_correction.push_back(gbinx);
+ 
+cout<<"EVENT : "<<vec_event[ko]<<endl;
  }
 
-for (Int_t c=0; c<16; c++)
-{
- ar_dr_channel[c] = vec_dr_channel[c];
- ar_dr_correction[c] = vec_dr_correction[c];
- }
-
-TGraph* dr_correction = new TGraph(vec_dr_channel.size(), ar_dr_channel, ar_dr_correction);
-dr_correction->SetName("dr_correction");
-dr_correction->Write();
-
-/////////////////////////////////////////////////////////END of Drift Time calliberation////////////////////////////////////////////////
-
-std::vector< vector<Double_t> > vec_Fee_drift_time;
-
-for (Int_t ao=1; ao< 17; ao++)
-{
-     std::vector<Double_t>vec_inFee_drift_time;
-     vec_inFee_drift_time.clear();
-
-    for (Int_t ae=0; ae< vec_Track_obj.size(); ae++)
-    {
-        Int_t FeNo =  ((4*(vec_Track_obj[ae]->layer - 1))+(2*(vec_Track_obj[ae]->module)-1)+((vec_Track_obj[ae]->fee)-1));
-        if (FeNo == ao)
-        {
-            vec_inFee_drift_time.push_back(vec_Track_obj[ae]->drifttime);
-
-         }
-
-     }
-
-     vec_Fee_drift_time.push_back(vec_inFee_drift_time);
-}
-
-for (Int_t ij=0; ij<vec_Fee_drift_time.size(); ij++)
-        {
-            Int_t driftTimeCounter2=0;
-
-            Double_t min_DT = vec_Fee_drift_time.at(ij).at(0);
-            for (Int_t rr = 0; rr < vec_Fee_drift_time.at(ij).size(); rr++)
-            {
-                if (vec_Fee_drift_time.at(ij).at(rr) < min_DT)
-                    min_DT=vec_Fee_drift_time.at(ij).at(rr);
-            }
-            cout<<"Minimum : "<<"\t"<<vec_Fee_drift_time.size()<<"\t"<<ij<<"\t"<<vec_Fee_drift_time.at(ij).size()<<endl;
-               
-            for (Int_t r = 0; r < vec_Fee_drift_time.at(ij).size(); r++)
-            {
-                vec_test.push_back(vec_Fee_drift_time.at(ij).at(r)-min_DT);
-                driftTimeCounter2++;
-            }
-
-//Sort the vector
-
-            std::sort(vec_test.begin(), vec_test.end());
-            cout << "counttts:  " << driftTimeCounter2 << endl;
-
-            // Ignore the decimals of the drifttimes.
-
-            for (int t = 0; t < vec_test.size(); t++)
-            {
-                // cout << seeme[t] << endl;
-                int x = (vec_test[t] * 100) / 100;
-                vec_roundoff.push_back(x);
-            }
-        //     // Calculate the occurances of each drift time.
-
-            for (int j = 0; j < vec_test.size(); j++)
-            {
-                // cout << vec1[j] << endl;
-                int occ_count = 1;
-                int limit = (vec_test.size() - 1);
-
-                while (j < limit && vec_roundoff[j] == vec_roundoff[j + 1])
-                {
-                    occ_count++;
-                    j++;
-                }
-                vec_occurance.push_back(occ_count);
-                vec_pos_DT.push_back(vec_roundoff[j]);
-                // cout<< vec_roundoff[j] << "\t" << occ_count <<  endl;
-            }
-
-        // Calculate the cummulative sum (integral) of the occurances.
-
-            for (int m = 0; m < vec_occurance.size(); m++)
-            {
-                int sum = 0;
-
-                for (int k = 0; k < m + 1; k++)
-                {
-                    sum += vec_occurance[k];
-                }
-
-                vec_cumsum.push_back(sum);
-            }
-
-         //Calculate the drift radius.
-
-            Int_t max_dr = driftTimeCounter2;
-            Int_t dt_range = vec_cumsum.size();
-
-            Double_t a1[dt_range];
-            Double_t b1[dt_range];
-            Double_t C = 0;
-            Double_t R = 0.505;
-            Double_t drift_radius = 0;
-
-            C = max_dr / R;
-
-
-            for (int e = 0; e < dt_range; e++)
-            {
-                drift_radius = vec_cumsum[e] / C;
-                vec_drift_radius.push_back(drift_radius);
-            }
-
-            for (int l = 0; l < vec_pos_DT.size(); l++)
-            {
-                cout << "Drift Time: "<< vec_pos_DT[l] << "\t" << vec_drift_radius[l] << endl;
-                a1[l] = vec_pos_DT[l];
-                b1[l] = vec_drift_radius[l];
-            }
-
-                char buff[200];
-                sprintf(buff, "fee_drift_%d", ij);    
-                TGraph* gDriftRadius = new TGraph(dt_range, a1, b1);
-                gDriftRadius->SetName(buff);
-                gDriftRadius->SetTitle(buff);
-                gDriftRadius->Write();
-                
-                vec_test.clear();
-                vec_roundoff.clear();
-                vec_occurance.clear();
-                vec_pos_DT.clear();
-                vec_cumsum.clear();
-                vec_drift_radius.clear();
-         }
-
-    DR_Tree->Write();
-
-    h_STT_EMC_td1->Write();
-    h_STT_EMC_td2->Write();
-    h_STT_EMC_td3->Write();
-    h_STT_EMC_td4->Write();
-    h_XvsZ->Write();
-    h_YvsZ->Write();
-    h_STT_EMC_timeDiff->Write();
-    h_straw_mean_straw->Write();
 
     return 0;
 }
